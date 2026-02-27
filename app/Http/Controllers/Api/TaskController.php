@@ -1,6 +1,7 @@
 <?php
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskCollection;
@@ -14,7 +15,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::latest()->get();
+        // $tasks = Task::latest()->get();
+        $tasks = Task::where('user_id', auth()->id())->latest()->get();
         return $this->success(new TaskCollection($tasks), 'Task list retrieved successfully.');
     }
 
@@ -23,39 +25,45 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        $data           = $request->validated();
-        $data['status'] = $data['status'] ?? 'pending';
-        $task           = Task::create($data);
+        $data            = $request->validated();
+        $data['status']  = $data['status'] ?? 'pending';
+        $data['user_id'] = auth()->id();
+        $task            = Task::create($data);
         return $this->success(new TaskResource($task), 'A task has been successfully created.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show($id)
     {
+        $task = Task::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         return $this->success(new TaskResource($task), 'Task retrieved successfully.');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTaskRequest $request, Task $task)
+    public function update(UpdateTaskRequest $request, $id)
     {
-        $data = $request->validated();
-        $task->update($data);
+        $task = Task::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+        $task->update($request->validated());
         return $this->success(new TaskResource($task), 'Task updated successfully');
     }
 
-    public function markAsComplete(Task $task)
+    public function markAsComplete($id)
     {
+
+        $task = Task::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $task->update(['status' => 'complete']);
         return $this->success(new TaskResource($task->refresh()), 'Task mark as completed');
     }
 
     public function updateStatus($id)
     {
-        $task      = Task::findOrFail($id);
+        $task      = Task::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $newStatus = ($task->status === 'pending') ? 'complete' : 'pending';
         $task->update(['status' => $newStatus]);
         return $this->success(new TaskResource($task), 'Task status changed to $newStatus');
@@ -64,8 +72,9 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy($id)
     {
+        $task = Task::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $task->delete();
         return $this->success(null, 'Task deleted successfully.', 200);
     }
