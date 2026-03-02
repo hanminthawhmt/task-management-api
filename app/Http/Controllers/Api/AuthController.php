@@ -3,43 +3,76 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UserLogInRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
     public function register(CreateUserRequest $request)
     {
-        $data = $request->validated();
-
-        $user = User::create($data);
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
+        $data             = $request->validated();
+        $data['password'] = Hash::make($data['password']);
+        $user             = User::create($data);
+        $token            = Auth::login($user); // JWT generates a unique string
         return response()->json([
-            'user'  => new UserResource($user),
-            'token' => $token,
+            'status'        => 'success',
+            'message'       => 'User created successfully',
+            'user'          => new UserResource($user),
+            'authorisation' => [
+                'token' => $token,
+                'type'  => 'bearer',
+            ],
         ]);
     }
 
-    public function login(Request $request)
+    public function login(UserLogInRequest $request)
     {
-        if (! Auth::attempt($request->only('email', 'password'))) {
+
+        $credentials = $request->validated();
+        $token       = Auth::attempt($credentials); // takes the email and password, checks the database, and verifies the hashed password
+
+        if (! $token) {
             return response()->json([
-                'message' => 'Invalid Credentials',
-            ]);
+                'status'  => 'error',
+                'message' => 'Unauthorized',
+            ], 401);
         }
 
-        $user  = Auth::user();
-        $token = $user->createToken('api-token')->plainTextToken;
-
+        $user = Auth::user(); // gets the currently authenticated user model instance from database
         return response()->json([
-            'user'  => new UserResource($user),
-            'token' => $token,
+            'status'        => 'success',
+            'user'          => new UserResource($user),
+            'authorisation' => [
+                'token' => $token,
+                'type'  => 'bearer',
+            ],
         ]);
 
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Successfully logged out',
+        ]);
+    }
+
+    public function refresh()
+    {
+        return response()->json([
+            'status'        => 'success',
+            'user'          => Auth::user(),
+            'authorisation' => [
+                'token' => Auth::refresh(),
+                'type'  => 'bearer',
+            ],
+        ]);
     }
 
 }
