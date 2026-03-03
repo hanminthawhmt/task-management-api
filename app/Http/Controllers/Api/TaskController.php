@@ -93,17 +93,46 @@ class TaskController extends Controller
         return $this->success(new TaskResource($task), 'Task updated successfully');
     }
 
+    // Quick Action
+    // Admin can mark the assignee task as complete
+    // Manager can mark the assignee task as complete
+    // Assignee can only mark their assigned task
     public function markAsComplete($id)
     {
-        $task = auth()->user()->tasks()->findOrFail($id);
+        $user = auth()->user();
+        $role = $user->role->title;
+        $task = Task::findOrFail($id);
+
+        if ($role === 'member' && $task->user_id !== $user->id) {
+            return response()->json([
+                "message" => "Unathorized",
+            ], 403);
+        }
+
         $task->update(['status' => 'complete']);
-        return $this->success(new TaskResource($task->refresh()), 'Task mark as completed');
+        return $this->success(
+            new TaskResource($task->refresh()),
+            'Task marked as completed'
+        );
     }
 
+    // Quick Action
+    // Admin can update the assignee task status as complete/pending
+    // Manager can update the assignee task status as complete/pending
+    // Assignee can only update their assigned task status as complete/pending
     public function updateStatus($id)
     {
-        $task      = auth()->user()->tasks()->findOrFail($id);
-        $newStatus = ($task->status === 'pending') ? 'complete' : 'pending';
+        $user = auth()->user();
+        $role = $user->role->title;
+        $task = Task::findOrFail($id);
+
+        if ($role === 'member' && $task->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'Unathorized',
+            ]);
+        }
+
+        $newStatus = $task->status === 'pending' ? 'complete' : 'pending';
         $task->update(['status' => $newStatus]);
         return $this->success(new TaskResource($task), "Task status changed to {$newStatus}");
     }
