@@ -19,6 +19,8 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('tasks/{id}/update', [TaskController::class, 'updateStatus']);
 
     Route::apiResource('tasks', TaskController::class);
+
+    Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
 });
 
 Route::post('register', [AuthController::class, 'register']);

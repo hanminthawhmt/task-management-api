@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Models\User;
 
 class TaskController extends Controller
 {
@@ -127,5 +128,31 @@ class TaskController extends Controller
 
         $task->delete();
         return $this->success(null, 'Task deleted successfully.', 200);
+    }
+
+    // Admin -> can see the list of specific user tasks
+    // Manager -> can see the list of specfic user tasks
+    public function getUserTasks($id)
+    {
+        $user = auth()->user();
+        $role = $user->role->title;
+
+        if (! in_array($role, ['admin', 'manager'])) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $tasks = Task::where('user_id', $id)->with(['assignee', 'creator'])->get();
+
+        return $this->success(TaskResource::collection($tasks), 'User tasks retrieved successfully');
     }
 }
