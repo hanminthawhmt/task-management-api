@@ -22,6 +22,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('tasks', TaskController::class);
 
     Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
+
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
     Route::apiResource('projects', ProjectController::class);
 });

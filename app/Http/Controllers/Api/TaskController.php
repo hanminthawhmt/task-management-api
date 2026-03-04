@@ -7,9 +7,16 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\TaskService;
 
 class TaskController extends Controller
 {
+    protected $taskService;
+
+    public function __construct(TaskService $taskService)
+    {
+        $this->taskService = $taskService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -100,18 +107,11 @@ class TaskController extends Controller
     public function markAsComplete($id)
     {
         $user = auth()->user();
-        $role = $user->role->title;
         $task = Task::findOrFail($id);
 
-        if ($role === 'member' && $task->user_id !== $user->id) {
-            return response()->json([
-                "message" => "Unathorized",
-            ], 403);
-        }
-
-        $task->update(['status' => 'complete']);
+        $updateTask = $this->taskService->markAsComplete($task, $user);
         return $this->success(
-            new TaskResource($task->refresh()),
+            new TaskResource($updateTask),
             'Task marked as completed'
         );
     }
@@ -184,4 +184,5 @@ class TaskController extends Controller
 
         return $this->success(TaskResource::collection($tasks), 'User tasks retrieved successfully');
     }
+
 }
