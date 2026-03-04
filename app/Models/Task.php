@@ -9,7 +9,7 @@ class Task extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $fillable = ['user_id', 'created_by', 'title', 'description', 'priority', 'status', 'start_date', 'due_date'];
+    protected $fillable = ['user_id', 'project_id', 'created_by', 'title', 'description', 'priority', 'status', 'start_date', 'due_date'];
 
     public function assignee()
     {
@@ -19,5 +19,10 @@ class Task extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function task()
+    {
+        return $this->belongsTo(Project::class);
     }
 }
