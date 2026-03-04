@@ -7,9 +7,16 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\TaskService;
 
 class TaskController extends Controller
 {
+    protected $taskService;
+
+    public function __construct(TaskService $taskService)
+    {
+        $this->taskService = $taskService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -24,7 +31,7 @@ class TaskController extends Controller
         $role = $user->role->title;
 
         if ($role === 'admin' || $role === 'manager') {
-            return Task::with(['assignee', 'creator'])->get();
+            return Task::with(['assignee', 'creator', 'project'])->get();
         }
 
         return Task::with(['assignee', 'creator'])->where('user_id', $user->id)->get();
@@ -39,13 +46,8 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         $user = auth()->user();
-        $role = $user->role->title;
 
-        if (! in_array($role, ['admin', 'manager'])) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        $this->authorize('create', Task::class);
 
         $task = Task::create([
              ...$request->validated(),
@@ -100,18 +102,11 @@ class TaskController extends Controller
     public function markAsComplete($id)
     {
         $user = auth()->user();
-        $role = $user->role->title;
         $task = Task::findOrFail($id);
 
-        if ($role === 'member' && $task->user_id !== $user->id) {
-            return response()->json([
-                "message" => "Unathorized",
-            ], 403);
-        }
-
-        $task->update(['status' => 'complete']);
+        $updateTask = $this->taskService->markAsComplete($task, $user);
         return $this->success(
-            new TaskResource($task->refresh()),
+            new TaskResource($updateTask),
             'Task marked as completed'
         );
     }
@@ -123,14 +118,9 @@ class TaskController extends Controller
     public function updateStatus($id)
     {
         $user = auth()->user();
-        $role = $user->role->title;
         $task = Task::findOrFail($id);
 
-        if ($role === 'member' && $task->user_id !== $user->id) {
-            return response()->json([
-                'message' => 'Unathorized',
-            ]);
-        }
+        $this->authorize('updateStatus', $task);
 
         $newStatus = $task->status === 'pending' ? 'complete' : 'pending';
         $task->update(['status' => $newStatus]);
@@ -149,11 +139,8 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
 
         $role = $user->role->title;
-        if ($role !== 'admin') {
-            return response()->json([
-                "message" => "Unauthorized",
-            ], 403);
-        }
+
+        $this->authorize('delete', $task);
 
         $task->delete();
         return $this->success(null, 'Task deleted successfully.', 200);
@@ -163,14 +150,8 @@ class TaskController extends Controller
     // Manager -> can see the list of specfic user tasks
     public function getUserTasks($id)
     {
-        $user = auth()->user();
-        $role = $user->role->title;
 
-        if (! in_array($role, ['admin', 'manager'])) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        $this->authorize('getUserTask', Task::class);
 
         $user = User::find($id);
 
@@ -184,4 +165,5 @@ class TaskController extends Controller
 
         return $this->success(TaskResource::collection($tasks), 'User tasks retrieved successfully');
     }
+
 }

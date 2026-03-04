@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use Illuminate\Http\Request;
@@ -21,6 +22,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('tasks', TaskController::class);
 
     Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
+
+    Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
+    Route::apiResource('projects', ProjectController::class);
 });
 
 Route::post('register', [AuthController::class, 'register']);
