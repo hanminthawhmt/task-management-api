@@ -32,14 +32,14 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request)
     {
 
-        $user = auth()->user();
-
         $this->authorize('create', Project::class);
 
-        $data               = $request->validated();
-        $data['created_by'] = $user->id;
+        $project = $this->projectService->createProject($request, auth()->user());
 
-        $project = Project::create($data);
+        // $data               = $request->validated();
+        // $data['created_by'] = $user->id;
+
+        // $project = Project::create($data);
 
         return $this->success(new ProjectResource($project), 'A project has been successfully created');
 

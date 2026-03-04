@@ -66,4 +66,5 @@ class ProjectPolicy
     {
         return in_array($user->role->title, ['admin', 'manager']);
     }
+    
 }

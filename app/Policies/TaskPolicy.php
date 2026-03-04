@@ -1,10 +1,8 @@
 <?php
-
 namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TaskPolicy
 {
@@ -29,7 +27,7 @@ class TaskPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return in_array($user->role->title, ['admin', 'manager']);
     }
 
     /**
@@ -45,7 +43,7 @@ class TaskPolicy
      */
     public function delete(User $user, Task $task): bool
     {
-        return false;
+        return $user->role->title === 'admin';
     }
 
     /**
@@ -62,5 +60,18 @@ class TaskPolicy
     public function forceDelete(User $user, Task $task): bool
     {
         return false;
+    }
+
+    public function getUserTask(User $user)
+    {
+        return in_array($user->role->title, ['admin', 'manager']);
+    }
+
+    public function updateStatus(User $user, Task $task)
+    {
+        if (in_array($user->role->title, ['admin', 'manager'])) {
+            return true;
+        }
+        return $user->id === $task->user_id;
     }
 }
