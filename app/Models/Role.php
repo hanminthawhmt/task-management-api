@@ -11,8 +11,8 @@ class Role extends Model
     use HasFactory;
     use SoftDeletes;
 
-    public function users()
-    {
-        $this->hasMany(User::class);
-    }
+    // public function users()
+    // {
+    //     $this->hasMany(User::class);
+    // }
 }
