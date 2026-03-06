@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
@@ -32,3 +34,20 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 Route::apiResource('roles', RoleController::class);
+
+Route::get('/test-email', function () {
+    try {
+        Mail::raw('Mailtrap test from ' . config('app.url'), function ($message) {
+            $message->to('hanminthaw@test.com')
+                ->subject('XAMPP Connectivity Test');
+        });
+        return response()->json(['message' => 'Email sent! Check Mailtrap.']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
+Route::post('invitations/send', [ProjectInvitationController::class, 'invite']);
+Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
+Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);
+Route::post('invitations/{id}/resend', [ProjectInvitationController::class, 'reinvite']);
