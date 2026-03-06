@@ -20,8 +20,7 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
-        'password',
-        'role_id',
+        'password'
     ];
 
     /**
@@ -71,7 +70,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(ProjectMember::class);
     }
-    
+
     public function projects()
     {
         return $this->belongsToMany(Project::class, 'project_members')->withPivot('role_id')->withTimestamps();

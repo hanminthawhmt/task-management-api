@@ -24,6 +24,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
 
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
+    Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
     Route::apiResource('projects', ProjectController::class);
 });
 
