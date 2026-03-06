@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Jobs\SendProjectInvitationEmail;
 use App\Mail\ProjectInvitationMail;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
@@ -48,7 +49,8 @@ class ProjectInvitationService
             ['token' => $token]
         );
 
-        Mail::to($email)->send(new ProjectInvitationMail($invitation, $acceptUrl));
+        //Mail::to($email)->send(new ProjectInvitationMail($invitation, $acceptUrl));
+        SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
 
         return $invitation;
 
