@@ -10,9 +10,9 @@ class Role extends Model
     protected $fillable = ['title'];
     use HasFactory;
     use SoftDeletes;
-
-    // public function users()
-    // {
-    //     $this->hasMany(User::class);
-    // }
+    
+    public function projectMembers()
+    {
+        return $this->hasMany(ProjectMember::class);
+    }
 }
