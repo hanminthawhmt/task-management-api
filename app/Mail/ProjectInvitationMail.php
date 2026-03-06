@@ -13,13 +13,15 @@ class ProjectInvitationMail extends Mailable
     use Queueable, SerializesModels;
 
     public $invitation;
+    public $acceptUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(ProjectInvitation $invitation)
+    public function __construct(ProjectInvitation $invitation, $acceptUrl)
     {
         $this->invitation = $invitation;
+        $this->acceptUrl  = $acceptUrl;
     }
 
     /**

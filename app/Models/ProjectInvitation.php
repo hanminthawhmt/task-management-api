@@ -18,6 +18,11 @@ class ProjectInvitation extends Model
         'expires_at',
     ];
 
+    protected $casts = [
+        'expires_at'  => 'datetime',
+        'accepted_at' => 'datetime',
+    ];
+
     public function project()
     {
         return $this->belongsTo(Project::class);

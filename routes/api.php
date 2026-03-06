@@ -49,6 +49,8 @@ Route::get('/test-email', function () {
 
 Route::post('invitations/send', [ProjectInvitationController::class, 'invite']);
 
-Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept']);
+Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
 
 Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);
+
+Route::post('invitations/{id}/resend', [ProjectInvitationController::class, 'reinvite']);

@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\ProjectInvitation;
+use App\Models\ProjectMember;
 use App\Services\ProjectInvitationService;
 use Illuminate\Http\Request;
 
@@ -35,7 +37,7 @@ class ProjectInvitationController extends Controller
     {
         $user = auth()->user();
 
-        $invitation = $this->service->acceptInvitation($token, $user->id);
+        $invitation = $this->service->acceptInvitation($token, $user);
 
         return $this->success($invitation, "Invitation accepted");
     }
@@ -46,5 +48,28 @@ class ProjectInvitationController extends Controller
         $invitation = $this->service->declineInvitation($token);
 
         return $this->success(null, 'Invitation declined');
+    }
+
+    public function reinvite($id)
+    {
+        $invitation = ProjectInvitation::findOrFail($id);
+
+        $member = ProjectMember::where('project_id', $invitation->project_id)
+            ->where('user_id', auth()->id())
+            ->with('role')
+            ->first();
+
+        if (! $member || ! in_array($member->role->title, ['owner', 'manager'])) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $this->service->resendInvitation($invitation);
+
+        return $this->success(
+            $invitation,
+            'Invitation resent successfully'
+        );
     }
 }
