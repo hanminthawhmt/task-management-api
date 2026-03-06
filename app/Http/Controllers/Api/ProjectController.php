@@ -89,7 +89,7 @@ class ProjectController extends Controller
 
         // $this->authorize('viewProjectTasks', Project::class);
 
-        $tasks = $this->projectService->getProjectTasks($project->id, auth()->user());
+        $tasks = $this->projectService->getProjectTasks($project, auth()->user());
 
         return $this->success(
             TaskResource::collection($tasks),
