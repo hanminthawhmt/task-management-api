@@ -55,7 +55,7 @@ class ProjectService
             abort(403, 'Not a member of this project');
         }
 
-        if (in_array($member->role->title, ['owner', 'manager'])) {
+        if (in_array($member->role->title, [Role::OWNER, Role::MANAGER])) {
             return Task::where('project_id', $project->id)->with(['assignee', 'creator'])->latest()->get();
         }
 
