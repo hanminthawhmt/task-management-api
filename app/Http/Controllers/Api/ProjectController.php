@@ -3,7 +3,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
-use App\Http\Resources\ProjectResource;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Services\ProjectService;
@@ -21,28 +20,39 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+        $projects = $this->projectService->getUserProjects(auth()->user());
+
+        return $this->success($projects, 'Projects retrieved successfully');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    // Admin -> can create projects
-    // Manager -> can create projects
+    // CREATE a project
+    // The one who creates the project becomes the project owner
     public function store(StoreProjectRequest $request)
     {
 
-        $this->authorize('create', Project::class);
+        //$this->authorize('create', Project::class);
 
         $project = $this->projectService->createProject($request, auth()->user());
 
-        // $data               = $request->validated();
-        // $data['created_by'] = $user->id;
+        return $this->success($project, 'A project has been successfully created');
 
-        // $project = Project::create($data);
+    }
 
-        return $this->success(new ProjectResource($project), 'A project has been successfully created');
+    // Add members to the project
+    public function addMember(Request $request, $projectId)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role_id' => 'required|exists:roles,id',
+        ]);
 
+        $project = Project::findOrFail($projectId);
+        $member  = $this->projectService->addMember($project, $request->user_id, $request->role_id);
+
+        return $this->success($member, 'Member added successfully');
     }
 
     /**
@@ -50,7 +60,8 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $project = $this->projectService->getProject($id);
+        return $this->success($project, 'Project retrieved successfully');
     }
 
     /**
@@ -76,9 +87,9 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
 
-        $this->authorize('viewProjectTasks', Project::class);
+        // $this->authorize('viewProjectTasks', Project::class);
 
-        $tasks = $this->projectService->getProjectTasks($project->id, auth()->user());
+        $tasks = $this->projectService->getProjectTasks($project, auth()->user());
 
         return $this->success(
             TaskResource::collection($tasks),
@@ -86,4 +97,5 @@ class ProjectController extends Controller
         );
 
     }
+
 }

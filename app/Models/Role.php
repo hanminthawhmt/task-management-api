@@ -7,12 +7,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
-    protected $fillable = ['title'];
+
     use HasFactory;
     use SoftDeletes;
 
-    // public function users()
-    // {
-    //     $this->hasMany(User::class);
-    // }
+    const OWNER   = 'owner';
+    const ADMIN   = 'admin';
+    const MANAGER = 'manager';
+    const MEMBER  = 'member';
+
+    protected $fillable = ['title'];
+
+    public function projectMembers()
+    {
+        return $this->hasMany(ProjectMember::class);
+    }
 }
