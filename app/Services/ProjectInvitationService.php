@@ -2,11 +2,9 @@
 namespace App\Services;
 
 use App\Jobs\SendProjectInvitationEmail;
-use App\Mail\ProjectInvitationMail;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -49,7 +47,6 @@ class ProjectInvitationService
             ['token' => $token]
         );
 
-        //Mail::to($email)->send(new ProjectInvitationMail($invitation, $acceptUrl));
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
 
         return $invitation;
@@ -83,8 +80,6 @@ class ProjectInvitationService
             ]);
         });
 
-        $invitation->update(['status' => 'accepted']);
-
         return $invitation;
     }
 
@@ -103,14 +98,14 @@ class ProjectInvitationService
 
     public function resendInvitation($invitation)
     {
-        $resendableStatuses = ['pending', 'expired', 'cancelled'];
 
-        if ($invitation->status === 'pending') {
-            throw new \Exception('Cannot resend invitation.');
+        if (in_array($invitation->status, ['accepted', 'cancelled'])) {
+            throw new \Exception("Cannot resend. Current status is: {$invitation->status}");
         }
 
         $invitation->update([
             'expires_at' => now()->addDays(3),
+            'status'     => 'pending',
         ]);
 
         $acceptUrl = URL::temporarySignedRoute(
@@ -119,8 +114,7 @@ class ProjectInvitationService
             ['token' => $invitation->token]
         );
 
-        Mail::to($invitation->email)
-            ->send(new ProjectInvitationMail($invitation, $acceptUrl));
+        SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
     }
 
 }
