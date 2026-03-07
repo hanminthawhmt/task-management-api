@@ -10,7 +10,12 @@ class Project extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['title', 'description', 'created_by'];
+    protected $fillable = [
+        'company_id',
+        'title',
+        'description',
+        'created_by',
+    ];
 
     public function tasks()
     {
@@ -25,5 +30,15 @@ class Project extends Model
     public function members()
     {
         return $this->hasMany(ProjectMember::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function scopeForCurrentCompany($query)
+    {
+        return $query->where('company_id', auth()->user()->company_id);
     }
 }

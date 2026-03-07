@@ -5,19 +5,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UserLogInRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function __construct(protected AuthService $service)
+    {
+
+    }
 
     public function register(CreateUserRequest $request)
     {
         $data             = $request->validated();
         $data['password'] = Hash::make($data['password']);
-        $user             = User::create($data);
-        $token            = Auth::login($user); // JWT generates a unique string
+
+        $user = $this->service->registration($data);
+
+        $token = Auth::login($user); // JWT generates a unique string
         return response()->json([
             'status'        => 'success',
             'message'       => 'User created successfully',
