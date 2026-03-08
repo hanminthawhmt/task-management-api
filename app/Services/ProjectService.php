@@ -14,13 +14,14 @@ class ProjectService
     {
         $data               = $request->validated();
         $data['created_by'] = $user->id;
+        $data['company_id'] = $user->company->id;
 
         return DB::transaction(function () use ($data, $user) {
             $project = Project::create($data);
 
             ProjectMember::create([
-                "project_id" => $project->id,
-                "user_id"    => $user->id,
+                'project_id' => $project->id,
+                'user_id'    => $user->id,
                 'role_id'    => Role::where('title', Role::OWNER)->value('id'),
             ]);
 
@@ -42,9 +43,9 @@ class ProjectService
         return $user->projects()->with('creator')->get();
     }
 
-    public function getProject($id)
+    public function getProject($id, $user)
     {
-        return Project::with(['creator', 'members.user', 'members.role'])->findOrFail($id);
+        return Project::forCurrentCompany()->where('id', $id)->with(['creator', 'members.user', 'members.role'])->findOrFail($id);
     }
 
     public function getProjectTasks($project, $user)

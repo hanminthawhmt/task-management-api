@@ -2,7 +2,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
 use App\Services\ProjectInvitationService;
@@ -25,9 +24,7 @@ class ProjectInvitationController extends Controller
             'role_id'    => 'required|exists:roles,id',
         ]);
 
-        $project = Project::findOrFail($request->project_id);
-
-        $invitation = $this->service->sendInvitation($project->id, $request->email, $request->role_id, $user->id);
+        $invitation = $this->service->sendInvitation($request->project_id, $request->email, $request->role_id, $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -36,6 +33,10 @@ class ProjectInvitationController extends Controller
     public function accept($token)
     {
         $user = auth()->user();
+
+        if (! $user) {
+            abort(401, "You must login first.");
+        }
 
         $invitation = $this->service->acceptInvitation($token, $user);
 
@@ -71,5 +72,23 @@ class ProjectInvitationController extends Controller
             $invitation,
             'Invitation resent successfully'
         );
+    }
+
+    public function show($token)
+    {
+        $invitation = ProjectInvitation::where('token', $token)->firstOrFail();
+
+        if ($invitation->status !== 'pending') {
+            abort(400, 'Invitation already used.');
+        }
+
+        if ($invitation->expires_at && now()->gt($invitation->expires_at)) {
+            abort(400, 'Invitation expired.');
+        }
+
+        return response()->json([
+            'email'      => $invitation->email,
+            'project_id' => $invitation->project_id,
+        ]);
     }
 }

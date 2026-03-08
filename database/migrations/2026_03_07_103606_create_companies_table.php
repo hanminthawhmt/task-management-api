@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('project_invitations', function (Blueprint $table) {
-            $table->unique(['project_id', 'email']);
+        Schema::create('companies', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('created_by')->constrained('users');
+            $table->timestamps();
         });
     }
 
@@ -21,12 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('project_invitations', function (Blueprint $table) {
-           
-            $table->dropForeign(['project_id']);
-
-            
-            $table->dropUnique(['project_id', 'email']);
-        });
+        Schema::dropIfExists('companies');
     }
 };

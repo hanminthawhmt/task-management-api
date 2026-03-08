@@ -16,6 +16,7 @@ class ProjectInvitation extends Model
         'status',
         'invited_by',
         'expires_at',
+        'accepted_at',
     ];
 
     protected $casts = [

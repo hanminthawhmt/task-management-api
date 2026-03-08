@@ -60,7 +60,8 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        $project = $this->projectService->getProject($id);
+        $user = auth()->user();
+        $project = $this->projectService->getProject($id, $user);
         return $this->success($project, 'Project retrieved successfully');
     }
 
