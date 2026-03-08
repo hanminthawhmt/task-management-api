@@ -2,8 +2,10 @@
 namespace App\Services;
 
 use App\Jobs\SendProjectInvitationEmail;
+use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -12,13 +14,19 @@ class ProjectInvitationService
 {
     public function sendInvitation($projectId, $email, $roleId, $invitedBy)
     {
-        // $existingMember = ProjectMember::where('project_id', $project->id)
-        //     ->whereHas('user', fn($q) => $q->where('email', $email))
-        //     ->exists();
+        $project = Project::findOrFail($projectId);
 
-        // if ($existingMember) {
-        //     throw new \Exception('User already belongs to this project.');
-        // }
+        $user = User::where('email', $email)->first();
+
+        if ($user && $user->company_id !== $project->company_id) {
+            throw new \Exception('User belongs to another company.');
+        }
+
+        $existingMember = ProjectMember::where('project_id', $projectId)->whereHas('user', fn($q) => $q->where('email', $email))->exists();
+
+        if ($existingMember) {
+            throw new \Exception('User already belongs to this project.');
+        }
 
         $existingInvite = ProjectInvitation::where('project_id', $projectId)
             ->where('email', $email)
@@ -66,7 +74,17 @@ class ProjectInvitationService
             abort(400, 'Invitation expired.');
         }
 
+        if ($invitation->email !== $user->email) {
+            abort(403, 'This invitation was sent to a different email.');
+        }
+
         DB::transaction(function () use ($invitation, $user) {
+
+            $existingMember = ProjectMember::where('project_id', $invitation->project_id)->where('user_id', $user->id)->exists();
+
+            if ($existingMember) {
+                throw new \Exception('User already belongs to this project.');
+            }
 
             ProjectMember::create([
                 'project_id' => $invitation->project_id,
@@ -80,7 +98,7 @@ class ProjectInvitationService
             ]);
         });
 
-        return $invitation;
+        return $invitation->fresh();
     }
 
     public function declineInvitation($token)
