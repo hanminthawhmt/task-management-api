@@ -73,4 +73,22 @@ class ProjectInvitationController extends Controller
             'Invitation resent successfully'
         );
     }
+
+    public function show($token)
+    {
+        $invitation = ProjectInvitation::where('token', $token)->firstOrFail();
+
+        if ($invitation->status !== 'pending') {
+            abort(400, 'Invitation already used.');
+        }
+
+        if ($invitation->expires_at && now()->gt($invitation->expires_at)) {
+            abort(400, 'Invitation expired.');
+        }
+
+        return response()->json([
+            'email'      => $invitation->email,
+            'project_id' => $invitation->project_id,
+        ]);
+    }
 }
