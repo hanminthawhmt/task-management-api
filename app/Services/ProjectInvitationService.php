@@ -117,11 +117,16 @@ class ProjectInvitationService
     public function resendInvitation($invitation)
     {
 
-        if (in_array($invitation->status, ['accepted', 'cancelled'])) {
-            throw new \Exception("Cannot resend. Current status is: {$invitation->status}");
+        if ($invitation->status === 'accepted') {
+            throw new \Exception("Invitation already accepted.");
+        }
+
+        if ($invitation->status === 'cancelled') {
+            throw new \Exception("Invitation was cancelled.");
         }
 
         $invitation->update([
+            'token'      => Str::uuid(),
             'expires_at' => now()->addDays(3),
             'status'     => 'pending',
         ]);
