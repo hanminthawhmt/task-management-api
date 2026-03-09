@@ -11,15 +11,24 @@ class Role extends Model
     use HasFactory;
     use SoftDeletes;
 
-    const OWNER   = 'owner';
-    const ADMIN   = 'admin';
-    const MANAGER = 'manager';
-    const MEMBER  = 'member';
+    const OWNER   = 'Owner';
+    const ADMIN   = 'Admin';
+    const MANAGER = 'Manager';
+    const MEMBER  = 'Member';
+    const GUEST   = 'Guest';
+    const VIEWER  = 'Viwer';
+    const COMPANY = 'company';
+    const PROJECT = 'project';
 
     protected $fillable = ['title'];
 
     public function projectMembers()
     {
         return $this->hasMany(ProjectMember::class);
+    }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'role_permissions');
     }
 }

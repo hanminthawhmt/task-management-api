@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Models\CompanyMember;
 use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model
@@ -19,4 +20,17 @@ class Company extends Model
     {
         return $this->hasMany(Project::class);
     }
+
+    public function members()
+    {
+        return $this->hasMany(CompanyMember::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'company_members')
+            ->withPivot('role_id')
+            ->withTimestamps();
+    }
+
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyInvitationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
@@ -28,8 +29,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
     Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
     Route::apiResource('projects', ProjectController::class);
+
+    Route::post('companies/{company}/invitations', [CompanyInvitationController::class, 'invite']);
+
 });
 
+Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
@@ -47,7 +52,9 @@ Route::get('/test-email', function () {
     }
 });
 
-Route::apiResource('invitations', ProjectInvitationController::class);
+Route::apiResource('invitations', CompanyInvitationController::class);
+
+// Route::apiResource('invitations', ProjectInvitationController::class);
 Route::post('invitations/send', [ProjectInvitationController::class, 'invite']);
 Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
 Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);

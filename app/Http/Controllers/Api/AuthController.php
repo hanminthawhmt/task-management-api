@@ -5,7 +5,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UserLogInRequest;
 use App\Http\Resources\UserResource;
-use App\Services\AuthService;
+use App\Models\User;
+use App\Services\Authentication\AuthService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,10 +18,38 @@ class AuthController extends Controller
 
     }
 
+    //TODO: need to refactor into serivce, controller, request, resource
+    public function registerAsAdmin(Request $request)
+    {
+        $data = $request->validate([
+            "name"     => 'required|string',
+            "email"    => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+        ]);
+        $data['password']      = Hash::make($data['password']);
+        $data['platform_role'] = 'super_admin';
+
+        $user = User::create($data);
+
+        $token = Auth::login($user);
+
+        return response()->json([
+            'status'        => 'success',
+            'message'       => 'User created successfully',
+            'user'          => $user,
+            'authorisation' => [
+                'token' => $token,
+                'type'  => 'bearer',
+            ],
+        ]);
+    }
+
+    //support register as a company owner or register from project invitation
     public function register(CreateUserRequest $request)
     {
-        $data             = $request->validated();
-        $data['password'] = Hash::make($data['password']);
+        $data                  = $request->validated();
+        $data['password']      = Hash::make($data['password']);
+        $data['platform_role'] = 'user';
 
         $user = $this->service->registration($data);
 

@@ -1,11 +1,11 @@
-<h2>You are invited to join a project</h2>
+<h2>You are invited to join a company</h2>
 
 <p>
-    You have been invited to join project:
-    <strong>{{ $invitation->project->name }}</strong>
+    You have been invited to join company:
+    <strong>{{ $invitation->company->name }}</strong>
 </p>
 
-<p>Role: {{ $invitation->role->title }}</p>
+<p>Role: {{ $invitation->role->name }}</p>
 
 <a href="{{ $acceptUrl }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
     Accept Invitation
