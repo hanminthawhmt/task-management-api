@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\CompanyInvitation;
 use App\Models\Role;
 use App\Services\Invitation\CompanyInvitationService;
 use Illuminate\Http\Request;
@@ -43,5 +44,24 @@ class CompanyInvitationController extends Controller
     public function resend()
     {
 
+    }
+
+    public function show($token)
+    {
+        $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
+
+        if ($invitation->status !== 'pending') {
+            abort(400, 'Invitation already used.');
+        }
+
+        if ($invitation->expires_at && now()->gt($invitation->expires_at)) {
+            abort(400, 'Invitation expired.');
+        }
+
+        return response()->json([
+            'email'      => $invitation->email,
+            'company_id' => $invitation->company_id,
+            'status'     => $invitation->status,
+        ]);
     }
 }

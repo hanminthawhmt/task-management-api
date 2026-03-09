@@ -75,7 +75,7 @@ class AuthService
             $user = User::create($data);
 
             if ($invitation) {
-                $company = Company::findOrFail($id);
+                $company = Company::findOrFail($invitation->company_id);
 
                 $membership = CompanyMember::create([
                     'company_id' => $company->id,
