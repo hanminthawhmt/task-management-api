@@ -15,6 +15,10 @@ class Role extends Model
     const ADMIN   = 'Admin';
     const MANAGER = 'Manager';
     const MEMBER  = 'Member';
+    const GUEST   = 'Guest';
+    const VIEWER  = 'Viwer';
+    const COMPANY = 'company';
+    const PROJECT = 'project';
 
     protected $fillable = ['title'];
 

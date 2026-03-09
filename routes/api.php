@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyInvitationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
@@ -28,6 +29,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
     Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
     Route::apiResource('projects', ProjectController::class);
+
+    Route::post('companies/{company}/invitations', [CompanyInvitationController::class, 'invite']);
+
 });
 
 Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);

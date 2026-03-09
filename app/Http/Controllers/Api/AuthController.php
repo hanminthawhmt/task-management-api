@@ -6,7 +6,7 @@ use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UserLogInRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use App\Services\AuthService;
+use App\Services\Authentication\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -44,10 +44,12 @@ class AuthController extends Controller
         ]);
     }
 
+    //support register as a company owner or register from project invitation
     public function register(CreateUserRequest $request)
     {
-        $data             = $request->validated();
-        $data['password'] = Hash::make($data['password']);
+        $data                  = $request->validated();
+        $data['password']      = Hash::make($data['password']);
+        $data['platform_role'] = 'user';
 
         $user = $this->service->registration($data);
 
