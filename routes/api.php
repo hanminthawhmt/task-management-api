@@ -30,6 +30,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('projects', ProjectController::class);
 });
 
+Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 

@@ -21,8 +21,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'company_id',
-        'company_role',
+        'platform_role',
     ];
 
     /**
@@ -78,8 +77,16 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Project::class, 'project_members')->withPivot('role_id')->withTimestamps();
     }
 
-    public function company()
+    public function companies()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsToMany(Company::class, 'company_members')
+            ->withPivot('role_id')
+            ->withTimestamps();
     }
+
+    public function companyMemberships()
+    {
+        return $this->hasMany(CompanyMember::class);
+    }
+
 }
