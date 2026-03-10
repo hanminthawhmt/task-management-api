@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\DB;
 class ProjectService
 {
 
-    public function createProject($request, $user)
+    public function createProject($data, $user)
     {
-        $data               = $request->validated();
         $data['created_by'] = $user->id;
-        $data['company_id'] = $user->company->id;
 
         return DB::transaction(function () use ($data, $user) {
             $project = Project::create($data);
@@ -22,7 +20,7 @@ class ProjectService
             ProjectMember::create([
                 'project_id' => $project->id,
                 'user_id'    => $user->id,
-                'role_id'    => Role::where('title', Role::OWNER)->value('id'),
+                'role_id'    => Role::where('title', Role::OWNER)->where('scope', Role::PROJECT)->value('id'),
             ]);
 
             return $project;

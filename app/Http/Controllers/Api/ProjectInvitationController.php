@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
+use App\Models\Role;
 use App\Services\ProjectInvitationService;
 use Illuminate\Http\Request;
 
@@ -18,13 +19,13 @@ class ProjectInvitationController extends Controller
     public function invite(Request $request)
     {
         $user = auth()->user();
-        $request->validate([
+        $data = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'email'      => 'required|email',
-            'role_id'    => 'required|exists:roles,id',
         ]);
+        $data['role_id'] = Role::where('title', Role::DEVELOPER)->where('scope', Role::PROJECT)->value('id');
 
-        $invitation = $this->service->sendInvitation($request->project_id, $request->email, $request->role_id, $user->id);
+        $invitation = $this->service->sendInvitation($data['project_id'], $data['email'], $data['role_id'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 

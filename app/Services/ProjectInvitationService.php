@@ -18,11 +18,12 @@ class ProjectInvitationService
 
         $user = User::where('email', $email)->first();
 
-        if ($user && $user->company_id !== $project->company_id) {
-            throw new \Exception('User belongs to another company.');
+        if (! $user) {
+            throw new \Exception('User haven\'t registered in this organization');
         }
 
-        $existingMember = ProjectMember::where('project_id', $projectId)->whereHas('user', fn($q) => $q->where('email', $email))->exists();
+        $existingMember = ProjectMember::where('project_id', $projectId)
+            ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
 
         if ($existingMember) {
             throw new \Exception('User already belongs to this project.');
@@ -54,6 +55,8 @@ class ProjectInvitationService
             now()->addDays(3),
             ['token' => $token]
         );
+
+        \Log::info('Invitation signed URL: ' . $acceptUrl);
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
 

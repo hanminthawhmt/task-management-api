@@ -28,7 +28,7 @@ class CompanyInvitationService
             ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
 
         if ($existingEmployee) {
-            throw new \Exception('User already belongs to this project.');
+            throw new \Exception('User already in this organization.');
         }
 
         $existingInvite = CompanyInvitation::where('company_id', $company_id)

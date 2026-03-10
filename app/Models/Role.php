@@ -11,14 +11,15 @@ class Role extends Model
     use HasFactory;
     use SoftDeletes;
 
-    const OWNER   = 'Owner';
-    const ADMIN   = 'Admin';
-    const MANAGER = 'Manager';
-    const MEMBER  = 'Member';
-    const GUEST   = 'Guest';
-    const VIEWER  = 'Viwer';
-    const COMPANY = 'company';
-    const PROJECT = 'project';
+    const OWNER     = 'Owner';
+    const ADMIN     = 'Admin';
+    const MANAGER   = 'Manager';
+    const MEMBER    = 'Member';
+    const GUEST     = 'Guest';
+    const DEVELOPER = 'Developer';
+    const VIEWER    = 'Viwer';
+    const COMPANY   = 'company';
+    const PROJECT   = 'project';
 
     protected $fillable = ['title'];
 
