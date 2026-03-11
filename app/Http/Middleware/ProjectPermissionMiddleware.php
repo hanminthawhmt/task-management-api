@@ -24,7 +24,7 @@ class ProjectPermissionMiddleware
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $projectId = $request->route('project_id') ?? $request->input('project_id');
+        $projectId = $request->route('id') ?? $request->input('project_id');
 
         $project = Project::findOrFail($projectId);
 

@@ -16,7 +16,9 @@ Route::get('/user', function (Request $request) {
 
 Route::middleware('auth:api')->group(function () {
 
+    // logout
     Route::post('logout', [AuthController::class, 'logout']);
+    // token refresh
     Route::post('refresh', [AuthController::class, 'refresh']);
 
     Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete']);
@@ -25,20 +27,35 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('tasks', TaskController::class);
 
     Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
+    
+    // Only company owner can invite members to the project
+    Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
 
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
     Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
     Route::apiResource('projects', ProjectController::class);
 
-    Route::post('companies/{company}/invitations', [CompanyInvitationController::class, 'invite']);
+    // Only company owner can invite members to the companywork space
+    Route::post('companies/{id}/invitations', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
 
 });
 
-Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);
+// can register as a company owner or can register as a company member using invitation token
 Route::post('register', [AuthController::class, 'register']);
+// can register as a platform admin
+Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);
+// login for everyone in the system
 Route::post('login', [AuthController::class, 'login']);
 
 Route::apiResource('roles', RoleController::class);
+
+Route::apiResource('invitations', CompanyInvitationController::class);
+
+// Route::apiResource('invitations', ProjectInvitationController::class);
+Route::post('projects/invitations/send', [ProjectInvitationController::class, 'createProjectAndInvite']);
+Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
+Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);
+Route::post('invitations/{id}/resend', [ProjectInvitationController::class, 'reinvite']);
 
 Route::get('/test-email', function () {
     try {
@@ -51,12 +68,3 @@ Route::get('/test-email', function () {
         return response()->json(['error' => $e->getMessage()], 500);
     }
 });
-
-Route::apiResource('invitations', CompanyInvitationController::class);
-
-// Route::apiResource('invitations', ProjectInvitationController::class);
-Route::post('projects/invitations/send', [ProjectInvitationController::class, 'createProjectAndInvite']);
-Route::post('invitations/send', [ProjectInvitationController::class, 'invite']);
-Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
-Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);
-Route::post('invitations/{id}/resend', [ProjectInvitationController::class, 'reinvite']);

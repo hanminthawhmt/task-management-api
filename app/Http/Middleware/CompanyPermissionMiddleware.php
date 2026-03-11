@@ -27,7 +27,7 @@ class CompanyPermissionMiddleware
             ], 401);
         }
 
-        $companyId = $request->route('company_id') ?? $request->input('company_id');
+        $companyId = $request->route('id') ?? $request->input('company_id');
 
         $company = Company::findOrFail($companyId);
 
