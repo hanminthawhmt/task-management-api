@@ -1,5 +1,5 @@
 <?php
-namespace App\Services;
+namespace App\Services\Project;
 
 use App\Models\Project;
 use App\Models\ProjectMember;

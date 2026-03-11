@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
-use App\Services\ProjectService;
+use App\Services\Project\ProjectService;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
