@@ -1,5 +1,5 @@
 <?php
-namespace App\Services\Permissions;
+namespace App\Services\Permission;
 
 use App\Models\CompanyMember;
 use App\Models\Project;
