@@ -18,20 +18,18 @@ class CompanyInvitationService
         //
     }
 
-    public function sendInvitation($company, $roleId, $email, $userId)
+    public function sendInvitation($companyId, $roleId, $email, $userId)
     {
-        $company_id = $company->id;
-
         $user = User::where('email', $email)->first();
 
-        $existingEmployee = CompanyMember::where('company_id', $company_id)
+        $existingEmployee = CompanyMember::where('company_id', $companyId)
             ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
 
         if ($existingEmployee) {
             throw new \Exception('User already in this organization.');
         }
 
-        $existingInvite = CompanyInvitation::where('company_id', $company_id)
+        $existingInvite = CompanyInvitation::where('company_id', $companyId)
             ->where('email', $email)
             ->where('status', 'pending')
             ->first();
@@ -43,7 +41,7 @@ class CompanyInvitationService
         $token = Str::uuid();
 
         $invitation = CompanyInvitation::create([
-            'company_id' => $company_id,
+            'company_id' => $companyId,
             'email'      => $email,
             'role_id'    => $roleId,
             'token'      => $token,

@@ -16,16 +16,15 @@ class ProjectInvitationController extends Controller
         $this->service = $invitationService;
     }
 
-    public function invite(Request $request)
+    public function invite(Request $request, $id)
     {
         $user = auth()->user();
         $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'email'      => 'required|email',
+            'email' => 'required|email',
         ]);
         $data['role_id'] = Role::where('title', Role::DEVELOPER)->where('scope', Role::PROJECT)->value('id');
 
-        $invitation = $this->service->sendInvitation($data['project_id'], $data['email'], $data['role_id'], $user->id);
+        $invitation = $this->service->sendInvitation($id, $data['email'], $data['role_id'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 

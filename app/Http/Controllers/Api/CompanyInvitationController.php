@@ -2,7 +2,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
 use App\Models\CompanyInvitation;
 use App\Models\Role;
 use App\Services\Invitation\CompanyInvitationService;
@@ -13,19 +12,20 @@ class CompanyInvitationController extends Controller
     public function __construct(protected CompanyInvitationService $service)
     {}
 
-    public function invite(Request $request, Company $company)
+    public function invite(Request $request)
     {
         $user = auth()->user();
 
         $data = $request->validate([
-            'email' => 'required|email',
+            'email'      => 'required|email',
+            'company_id' => 'required|integer|exists:companies,id',
         ]);
 
         $data['role_id'] = Role::where('title', Role::MEMBER)
             ->where('scope', Role::COMPANY)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($company, $data['role_id'], $data['email'], $user->id);
+        $invitation = $this->service->sendInvitation($data['company_id'], $data['role_id'], $data['email'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 

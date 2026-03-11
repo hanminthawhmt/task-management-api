@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
-use App\Services\TaskService;
+use App\Services\Task\TaskService;
 
 class TaskController extends Controller
 {
