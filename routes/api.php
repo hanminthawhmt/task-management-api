@@ -55,6 +55,7 @@ Route::get('/test-email', function () {
 Route::apiResource('invitations', CompanyInvitationController::class);
 
 // Route::apiResource('invitations', ProjectInvitationController::class);
+Route::post('projects/invitations/send', [ProjectInvitationController::class, 'createProjectAndInvite']);
 Route::post('invitations/send', [ProjectInvitationController::class, 'invite']);
 Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
 Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);

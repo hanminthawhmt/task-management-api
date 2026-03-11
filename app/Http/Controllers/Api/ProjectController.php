@@ -34,8 +34,9 @@ class ProjectController extends Controller
     {
 
         //$this->authorize('create', Project::class);
+        $data = $request->validated();
 
-        $project = $this->projectService->createProject($request, auth()->user());
+        $project = $this->projectService->createProject($data, auth()->user());
 
         return $this->success($project, 'A project has been successfully created');
 
@@ -60,7 +61,7 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        $user = auth()->user();
+        $user    = auth()->user();
         $project = $this->projectService->getProject($id, $user);
         return $this->success($project, 'Project retrieved successfully');
     }

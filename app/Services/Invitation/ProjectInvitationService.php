@@ -1,10 +1,12 @@
 <?php
-namespace App\Services;
+namespace App\Services\Invitation;
 
 use App\Jobs\SendProjectInvitationEmail;
+use App\Models\CompanyMember;
 use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -18,11 +20,12 @@ class ProjectInvitationService
 
         $user = User::where('email', $email)->first();
 
-        if ($user && $user->company_id !== $project->company_id) {
-            throw new \Exception('User belongs to another company.');
+        if (! $user) {
+            throw new \Exception('User haven\'t registered in this organization');
         }
 
-        $existingMember = ProjectMember::where('project_id', $projectId)->whereHas('user', fn($q) => $q->where('email', $email))->exists();
+        $existingMember = ProjectMember::where('project_id', $projectId)
+            ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
 
         if ($existingMember) {
             throw new \Exception('User already belongs to this project.');
@@ -54,6 +57,8 @@ class ProjectInvitationService
             now()->addDays(3),
             ['token' => $token]
         );
+
+        \Log::info('Invitation signed URL: ' . $acceptUrl);
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
 
@@ -138,6 +143,59 @@ class ProjectInvitationService
         );
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
+    }
+
+    public function createProjectWithMember($data, $user)
+    {
+        return DB::transaction(function () use ($data, $user) {
+
+            $project = Project::create([
+                'company_id'  => $data['company_id'],
+                'title'        => $data['project_name'],
+                'description' => $data['project_description'],
+                'created_by'  => $data['created_by'],
+            ]);
+
+            if (! empty($data['invite_emails'])) {
+                $roleId = Role::where('title', Role::DEVELOPER)
+                    ->where('scope', Role::PROJECT)
+                    ->value('id');
+
+                foreach ($data['invite_emails'] as $email) {
+
+                    $existingEmployee = CompanyMember::where('company_id', $data['company_id'])
+                        ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
+
+                    if (! $existingEmployee) {
+                        continue;
+                    }
+
+                    $token = Str::uuid();
+
+                    $invitation = ProjectInvitation::create([
+                        'project_id' => $project->id,
+                        'email'      => $email,
+                        'role_id'    => $roleId,
+                        'token'      => $token,
+                        'invited_by' => $user->id,
+                        'status'     => 'pending',
+                        'expires_at' => now()->addDays(3),
+                    ]);
+
+                    $acceptUrl = URL::temporarySignedRoute(
+                        'invitation.accept',
+                        now()->addDays(3),
+                        ['token' => $token]
+                    );
+
+                    \Log::info('Invitation signed URL: ' . $acceptUrl);
+
+                    SendProjectInvitationEmail::dispatch($invitation, $acceptUrl)->afterCommit();
+
+                }
+            }
+            return $project->load('invitations');
+        });
     }
 
 }

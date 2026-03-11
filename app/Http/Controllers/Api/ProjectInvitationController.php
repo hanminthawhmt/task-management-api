@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
-use App\Services\ProjectInvitationService;
+use App\Models\Role;
+use App\Services\Invitation\ProjectInvitationService;
 use Illuminate\Http\Request;
 
 class ProjectInvitationController extends Controller
@@ -18,13 +19,13 @@ class ProjectInvitationController extends Controller
     public function invite(Request $request)
     {
         $user = auth()->user();
-        $request->validate([
+        $data = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'email'      => 'required|email',
-            'role_id'    => 'required|exists:roles,id',
         ]);
+        $data['role_id'] = Role::where('title', Role::DEVELOPER)->where('scope', Role::PROJECT)->value('id');
 
-        $invitation = $this->service->sendInvitation($request->project_id, $request->email, $request->role_id, $user->id);
+        $invitation = $this->service->sendInvitation($data['project_id'], $data['email'], $data['role_id'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -90,5 +91,28 @@ class ProjectInvitationController extends Controller
             'email'      => $invitation->email,
             'project_id' => $invitation->project_id,
         ]);
+    }
+
+    public function createProjectAndInvite(Request $request)
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            abort(401, "You must login first.");
+        }
+
+        $data = $request->validate([
+            'project_name'        => 'required|string',
+            'project_description' => 'required|string',
+            'company_id'          => 'required|integer|exists:companies,id',
+            'invite_emails'       => 'nullable|array',
+            'invite_emails.*'     => 'email|distinct',
+        ]);
+
+        $data['created_by'] = $user->id;
+
+        $project = $this->service->createProjectWithMember($data, $user);
+
+        return $this->success($project, 'Project has been successfully created');
     }
 }

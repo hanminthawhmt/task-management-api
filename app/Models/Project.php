@@ -44,8 +44,14 @@ class Project extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function invitations()
+    {
+        return $this->hasMany(ProjectInvitation::class);
+    }
+
     public function scopeForCurrentCompany($query)
     {
         return $query->where('company_id', auth()->user()->company_id);
     }
+
 }
