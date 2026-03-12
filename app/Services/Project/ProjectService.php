@@ -14,7 +14,7 @@ class ProjectService
     {
         $data['created_by'] = $user->id;
 
-        return DB::transaction(function () use ($data, $user) {
+        return DB::transaction(function () use ($data, $companyId, $user) {
             $project = Project::create([
                 'title'       => $data['title'],
                 'description' => $data['description'],
@@ -22,10 +22,12 @@ class ProjectService
                 'company_id'  => $companyId,
             ]);
 
+            $roleId = Role::where('title', Role::OWNER)->where('scope', Role::PROJECT)->value('id');
+
             ProjectMember::create([
                 'project_id' => $project->id,
                 'user_id'    => $user->id,
-                'role_id'    => Role::where('title', Role::OWNER)->where('scope', Role::PROJECT)->value('id'),
+                'role_id'    => $roleId,
             ]);
 
             return $project;

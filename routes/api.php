@@ -21,23 +21,26 @@ Route::middleware('auth:api')->group(function () {
     // token refresh
     Route::post('refresh', [AuthController::class, 'refresh']);
 
-    Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete']);
-    Route::patch('tasks/{id}/update', [TaskController::class, 'updateStatus']);
+    // Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete']);
+    // Route::patch('tasks/{id}/update', [TaskController::class, 'updateStatus']);
 
-    Route::apiResource('tasks', TaskController::class);
+    // Route::apiResource('tasks', TaskController::class);
 
-    Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
+    // Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
 
     // Only company owner can invite members to the project
     Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
     // Only company owner can invite members to the companywork space
     Route::post('companies/{id}/member/invite', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
-    
+
     Route::post('companies/{id}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
 
     Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
     Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
     Route::apiResource('projects', ProjectController::class);
+
+    // company owner, company admin, company manager, project owner, project manager, project developer can create task
+    Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
 });
 
 // can register as a company owner or can register as a company member using invitation token
