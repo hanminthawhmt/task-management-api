@@ -30,13 +30,13 @@ class ProjectController extends Controller
      */
     // CREATE a project
     // The one who creates the project becomes the project owner
-    public function store(StoreProjectRequest $request)
+    public function store(StoreProjectRequest $request, $id)
     {
 
         //$this->authorize('create', Project::class);
         $data = $request->validated();
 
-        $project = $this->projectService->createProject($data, auth()->user());
+        $project = $this->projectService->createProject($data, $id, auth()->user());
 
         return $this->success($project, 'A project has been successfully created');
 

@@ -10,12 +10,17 @@ use Illuminate\Support\Facades\DB;
 class ProjectService
 {
 
-    public function createProject($data, $user)
+    public function createProject($data, $companyId, $user)
     {
         $data['created_by'] = $user->id;
 
         return DB::transaction(function () use ($data, $user) {
-            $project = Project::create($data);
+            $project = Project::create([
+                'title'       => $data['title'],
+                'description' => $data['description'],
+                'created_by'  => $data['created_by'],
+                'company_id'  => $companyId,
+            ]);
 
             ProjectMember::create([
                 'project_id' => $project->id,
