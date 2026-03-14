@@ -12,20 +12,19 @@ class CompanyInvitationController extends Controller
     public function __construct(protected CompanyInvitationService $service)
     {}
 
-    public function invite(Request $request)
+    public function invite(Request $request, $id)
     {
         $user = auth()->user();
 
         $data = $request->validate([
-            'email'      => 'required|email',
-            'company_id' => 'required|integer|exists:companies,id',
+            'email' => 'required|email',
         ]);
 
         $data['role_id'] = Role::where('title', Role::MEMBER)
             ->where('scope', Role::COMPANY)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($data['company_id'], $data['role_id'], $data['email'], $user->id);
+        $invitation = $this->service->sendInvitation($id, $data['role_id'], $data['email'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 

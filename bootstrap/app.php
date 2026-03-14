@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CompanyPermissionMiddleware;
+use App\Http\Middleware\ProjectPermissionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,8 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         $middleware->alias([
-            'company.permission' => \App\Http\Middleware\CompanyPermissionMiddleware::class,
-            'project.permission' => \App\Http\Middleware\ProjectPermissionMiddleware::class,
+            'company.permission' => CompanyPermissionMiddleware::class,
+            'project.permission' => ProjectPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

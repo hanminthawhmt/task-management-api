@@ -45,17 +45,20 @@ class TaskController extends Controller
     // Member -> cannot assign tasks
     public function store(StoreTaskRequest $request)
     {
-        $user = auth()->user();
+        //$user = auth()->user();
 
         // $this->authorize('create', Task::class);
 
-        $task = Task::create([
-             ...$request->validated(),
-            'status'     => $request->status ?? "pending",
-            'created_by' => $user->id,
-        ]);
+        // $task = Task::create([
+        //      ...$request->validated(),
+        //     'status'     => $request->status ?? "pending",
+        //     'created_by' => $user->id,
+        // ]);
+        $user = auth()->user();
 
-        return $this->success(new TaskResource($task), 'A task has been successfully created.');
+        $task = $this->taskService->createTask($request, $user);
+
+        return $this->success($task, 'A task has been successfully created.');
     }
 
     /**
