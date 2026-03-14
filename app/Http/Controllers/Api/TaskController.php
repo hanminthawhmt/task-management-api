@@ -20,9 +20,6 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // Admin -> see all tasks
-    // Manager -> see all tasks
-    // Member -> see only assigned tasks
     public function index()
     {
         // get the current authenticated user
@@ -40,20 +37,10 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    // Admin -> can assign tasks
-    // Manager -> can assign tasks
-    // Member -> cannot assign tasks
+    // user who has permissions of create_task can create a task
     public function store(StoreTaskRequest $request)
     {
-        //$user = auth()->user();
-
         // $this->authorize('create', Task::class);
-
-        // $task = Task::create([
-        //      ...$request->validated(),
-        //     'status'     => $request->status ?? "pending",
-        //     'created_by' => $user->id,
-        // ]);
         $user = auth()->user();
 
         $task = $this->taskService->createTask($request, $user);
@@ -70,9 +57,6 @@ class TaskController extends Controller
         return $this->success(new TaskResource($task), 'Task retrieved successfully.');
     }
 
-    // Admin -> can update anything
-    // Manager -> can update anything
-    // Member -> can update the assigned task (status of the task)
     /**
      * Update the specified resource in storage.
      */
@@ -115,15 +99,12 @@ class TaskController extends Controller
     }
 
     // Quick Action
-    // Admin can update the assignee task status as complete/pending
-    // Manager can update the assignee task status as complete/pending
-    // Assignee can only update their assigned task status as complete/pending
     public function updateStatus($id)
     {
         $user = auth()->user();
         $task = Task::findOrFail($id);
 
-        $this->authorize('updateStatus', $task);
+        //$this->authorize('updateStatus', $task);
 
         $newStatus = $task->status === 'pending' ? 'complete' : 'pending';
         $task->update(['status' => $newStatus]);
@@ -133,9 +114,7 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    // Admin -> can delet task
-    // Manager -> cannot delet task
-    // Member -> cannot delet task
+    // user who has the permission of delete_task can delete a task
     public function destroy($id)
     {
         $user = auth()->user();
