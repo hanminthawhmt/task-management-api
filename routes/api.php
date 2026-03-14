@@ -21,8 +21,8 @@ Route::middleware('auth:api')->group(function () {
     // token refresh
     Route::post('refresh', [AuthController::class, 'refresh']);
 
-    // Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete']);
-    // Route::patch('tasks/{id}/update', [TaskController::class, 'updateStatus']);
+    Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete'])->middleware('project.permission:update_task');
+    Route::patch('tasks/{task}/update', [TaskController::class, 'updateStatus'])->middleware('project.permission:update_task');
 
     // Route::apiResource('tasks', TaskController::class);
 
@@ -41,6 +41,8 @@ Route::middleware('auth:api')->group(function () {
 
     // company owner, company admin, company manager, project owner, project manager, project developer can create task
     Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
+    Route::post('tasks/{id}', [TaskController::class, 'detroy'])->middleware('project.permission:delete_task');
+
 });
 
 // can register as a company owner or can register as a company member using invitation token

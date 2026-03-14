@@ -2,6 +2,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Project;
+use App\Models\Task;
 use App\Services\Permission\ProjectPermissionService;
 use Closure;
 use Illuminate\Http\Request;
@@ -24,9 +25,7 @@ class ProjectPermissionMiddleware
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $projectId = $request->route('id') ?? $request->input('project_id');
-
-        $project = Project::findOrFail($projectId);
+        $project = $this->resolveProject($request);
 
         if (! $this->service->hasPermission($user, $project, $permission)) {
             return response()->json([
@@ -35,5 +34,32 @@ class ProjectPermissionMiddleware
         }
 
         return $next($request);
+    }
+
+    private function resolveProject(Request $request): Project
+    {
+        if ($request->route('id')) {
+            return Project::findOrFail($request->route('id'));
+        }
+
+        if ($request->input('project_id')) {
+            return Project::findOrFail($request->input('project_id'));
+        }
+
+        if ($request->route('task')) {
+            $task = $request->route('task');
+
+            // If route model binding already returned a Task model
+            if ($task instanceof Task) {
+                return $task->project;
+            }
+
+            // if it is only an id
+            $task = Task::findOrFail($task);
+
+            return $task->project;
+        }
+
+        abort(400, 'Unable to determine project.');
     }
 }
