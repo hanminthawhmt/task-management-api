@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\CompanyInvitationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectInvitationController;
@@ -27,6 +28,8 @@ Route::middleware('auth:api')->group(function () {
     // Route::apiResource('tasks', TaskController::class);
 
     // Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
+
+    Route::get('companies', [CompanyController::class, 'index']);
 
     // Only company owner can invite members to the project
     Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
