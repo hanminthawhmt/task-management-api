@@ -3,7 +3,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProjectInvitation;
-use App\Models\ProjectMember;
 use App\Models\Role;
 use App\Services\Invitation\ProjectInvitationService;
 use Illuminate\Http\Request;
@@ -59,17 +58,6 @@ class ProjectInvitationController extends Controller
     public function reinvite($id)
     {
         $invitation = ProjectInvitation::findOrFail($id);
-
-        $member = ProjectMember::where('project_id', $invitation->project_id)
-            ->where('user_id', auth()->id())
-            ->with('role')
-            ->first();
-
-        if (! $member || ! in_array($member->role->title, ['owner', 'manager'])) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
 
         $this->service->resendInvitation($invitation);
 

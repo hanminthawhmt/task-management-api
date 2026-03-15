@@ -2,14 +2,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\StoreAdminRequest;
 use App\Http\Requests\UserLogInRequest;
+use App\Http\Requests\UserOnboardingRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
 use App\Services\Authentication\AuthService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -18,48 +15,35 @@ class AuthController extends Controller
 
     }
 
-    //TODO: need to refactor into serivce, controller, request, resource
-    public function registerAsAdmin(Request $request)
+    // platform admin registration
+    public function registerAsAdmin(StoreAdminRequest $request)
     {
-        $data = $request->validate([
-            "name"     => 'required|string',
-            "email"    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-        ]);
-        $data['password']      = Hash::make($data['password']);
-        $data['platform_role'] = 'super_admin';
-
-        $user = User::create($data);
-
-        $token = Auth::login($user);
+        $result = $this->service->registerAsAdmin($request->validated());
 
         return response()->json([
             'status'        => 'success',
             'message'       => 'User created successfully',
-            'user'          => $user,
+            'user'          => $result['user'],
             'authorisation' => [
-                'token' => $token,
+                'token' => $result['token'],
                 'type'  => 'bearer',
             ],
         ]);
     }
 
-    //support register as a company owner or register from project invitation
-    public function register(CreateUserRequest $request)
+    //support register as a company owner or register from company invitation
+    public function register(UserOnboardingRequest $request)
     {
-        $data                  = $request->validated();
-        $data['password']      = Hash::make($data['password']);
-        $data['platform_role'] = 'user';
+        $data = $request->validated();
 
-        $user = $this->service->registration($data);
+        $result = $this->service->registration($data);
 
-        $token = Auth::login($user); // JWT generates a unique string
         return response()->json([
             'status'        => 'success',
             'message'       => 'User created successfully',
-            'user'          => new UserResource($user),
+            'user'          => new UserResource($result['user']),
             'authorisation' => [
-                'token' => $token,
+                'token' => $result['token'],
                 'type'  => 'bearer',
             ],
         ]);
@@ -69,21 +53,14 @@ class AuthController extends Controller
     {
 
         $credentials = $request->validated();
-        $token       = Auth::attempt($credentials); // takes the email and password, checks the database, and verifies the hashed password
 
-        if (! $token) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Unauthorized',
-            ], 401);
-        }
+        $result = $this->service->login($credentials);
 
-        $user = Auth::user(); // gets the currently authenticated user model instance from database
         return response()->json([
             'status'        => 'success',
-            'user'          => new UserResource($user),
+            'user'          => new UserResource($result['user']),
             'authorisation' => [
-                'token' => $token,
+                'token' => $result['token'],
                 'type'  => 'bearer',
             ],
         ]);
@@ -92,7 +69,8 @@ class AuthController extends Controller
 
     public function logout()
     {
-        Auth::logout();
+        $this->service->logout();
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Successfully logged out',
@@ -101,11 +79,13 @@ class AuthController extends Controller
 
     public function refresh()
     {
+        $result = $this->service->refresh();
+
         return response()->json([
             'status'        => 'success',
-            'user'          => Auth::user(),
+            'user'          => $result['user'],
             'authorisation' => [
-                'token' => Auth::refresh(),
+                'token' => $result['token'],
                 'type'  => 'bearer',
             ],
         ]);

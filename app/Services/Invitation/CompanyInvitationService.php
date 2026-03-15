@@ -62,18 +62,41 @@ class CompanyInvitationService
 
     }
 
-    public function acceptInvitation()
+    public function declineInvitation($token)
     {
+        $invitation = CompanyInvitation::where('token', $token)->firstOrFail();
 
+        if ($invitation->status !== "pending") {
+            throw new \Exception("Invitation already used");
+        }
+
+        $invitation->update(['status' => 'declined']);
+
+        return $invitation;
     }
 
-    public function declineInvitation()
+    public function resendInvitation($invitation)
     {
+        if ($invitation->status === 'accepted') {
+            throw new \Exception("Invitation already accepted");
+        }
 
-    }
+        if ($invitation->status === 'cancelled') {
+            throw new \Exception("Invitation was cancelled.");
+        }
 
-    public function resendInvitation()
-    {
+        $invitation->update([
+            'token'      => Str::uuid(),
+            'expires_at' => now()->addDays(3),
+            'status'     => 'pending',
+        ]);
 
+        $acceptUrl = URL::temporarySignedRoute(
+            'invitation.accept',
+            now()->addDays(3),
+            ['token' => $invitation->token]
+        );
+
+        SendCompanyInvitationEmail::dispatch($invitation, $acceptUrl);
     }
 }
