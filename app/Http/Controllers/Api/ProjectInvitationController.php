@@ -20,11 +20,16 @@ class ProjectInvitationController extends Controller
     {
         $user = auth()->user();
         $data = $request->validate([
-            'email' => 'required|email',
+            'email'   => 'required|email',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
-        $data['role_id'] = Role::where('title', Role::DEVELOPER)->where('scope', Role::PROJECT)->value('id');
 
-        $invitation = $this->service->sendInvitation($id, $data['email'], $data['role_id'], $user->id);
+        // if the role is not set by the project owner, it will be the default role which is developer
+        $roleId = $data['role_id'] ?? Role::where('title', Role::DEVELOPER)
+            ->where('scope', Role::PROJECT)
+            ->value('id');
+
+        $invitation = $this->service->sendInvitation($id, $data['email'], $roleId, $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -92,6 +97,7 @@ class ProjectInvitationController extends Controller
         ]);
     }
 
+    // create project and invite members at the same time
     public function createProjectAndInvite(Request $request)
     {
         $user = auth()->user();
