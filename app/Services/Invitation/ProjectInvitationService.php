@@ -151,7 +151,7 @@ class ProjectInvitationService
 
             $project = Project::create([
                 'company_id'  => $data['company_id'],
-                'title'        => $data['project_name'],
+                'title'       => $data['project_name'],
                 'description' => $data['project_description'],
                 'created_by'  => $data['created_by'],
             ]);

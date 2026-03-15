@@ -3,7 +3,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProjectInvitation;
-use App\Models\ProjectMember;
 use App\Models\Role;
 use App\Services\Invitation\ProjectInvitationService;
 use Illuminate\Http\Request;
@@ -20,11 +19,16 @@ class ProjectInvitationController extends Controller
     {
         $user = auth()->user();
         $data = $request->validate([
-            'email' => 'required|email',
+            'email'   => 'required|email',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
-        $data['role_id'] = Role::where('title', Role::DEVELOPER)->where('scope', Role::PROJECT)->value('id');
 
-        $invitation = $this->service->sendInvitation($id, $data['email'], $data['role_id'], $user->id);
+        // if the role is not set by the project owner, it will be the default role which is developer
+        $roleId = $data['role_id'] ?? Role::where('title', Role::DEVELOPER)
+            ->where('scope', Role::PROJECT)
+            ->value('id');
+
+        $invitation = $this->service->sendInvitation($id, $data['email'], $roleId, $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -51,20 +55,10 @@ class ProjectInvitationController extends Controller
         return $this->success(null, 'Invitation declined');
     }
 
-    public function reinvite($id)
+    public function reinvite($id, $invitation_id)
     {
-        $invitation = ProjectInvitation::findOrFail($id);
-
-        $member = ProjectMember::where('project_id', $invitation->project_id)
-            ->where('user_id', auth()->id())
-            ->with('role')
-            ->first();
-
-        if (! $member || ! in_array($member->role->title, ['owner', 'manager'])) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        // $invitation = ProjectInvitation::findOrFail($id);
+        $invitation = ProjectInvitation::where('project_id', $id)->findOrFail($invitation_id);
 
         $this->service->resendInvitation($invitation);
 
@@ -92,6 +86,7 @@ class ProjectInvitationController extends Controller
         ]);
     }
 
+    // create project and invite members at the same time
     public function createProjectAndInvite(Request $request)
     {
         $user = auth()->user();

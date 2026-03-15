@@ -2,23 +2,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SendInvitationRequest;
 use App\Models\CompanyInvitation;
 use App\Models\Role;
 use App\Services\Invitation\CompanyInvitationService;
-use Illuminate\Http\Request;
 
 class CompanyInvitationController extends Controller
 {
     public function __construct(protected CompanyInvitationService $service)
     {}
 
-    public function invite(Request $request, $id)
+    public function invite(SendInvitationRequest $request, $id)
     {
         $user = auth()->user();
 
-        $data = $request->validate([
-            'email' => 'required|email',
-        ]);
+        $data = $request->validated();
 
         $data['role_id'] = Role::where('title', Role::MEMBER)
             ->where('scope', Role::COMPANY)
@@ -30,19 +28,25 @@ class CompanyInvitationController extends Controller
 
     }
 
-    public function accept()
+    public function decline($token)
     {
+        $invitation = $this->service->declineInvitation($token);
 
+        return $this->success(null, 'Invitation declined');
     }
 
-    public function decline()
+    public function reinvite($id, $invitation_id)
     {
+        // $invitation = CompanyInvitation::findOrFail($id);
+        // $invitation = CompanyInvitation::where('company_id', $id)->where('id', $invitation_id)->first();
+        $invitation = CompanyInvitation::where('company_id', $id)->findOrFail($invitation_id);
 
-    }
+        $this->service->resendInvitation($invitation);
 
-    public function resend()
-    {
-
+        return $this->success(
+            $invitation,
+            'Invitation resent successfully'
+        );
     }
 
     public function show($token)
