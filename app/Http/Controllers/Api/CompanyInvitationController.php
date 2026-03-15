@@ -35,12 +35,14 @@ class CompanyInvitationController extends Controller
         return $this->success(null, 'Invitation declined');
     }
 
-    public function reinvite($id)
+    public function reinvite($id, $invitation_id)
     {
-        $invitation = CompanyInvitation::findOrFail($id);
+        // $invitation = CompanyInvitation::findOrFail($id);
+        // $invitation = CompanyInvitation::where('company_id', $id)->where('id', $invitation_id)->first();
+        $invitation = CompanyInvitation::where('company_id', $id)->findOrFail($invitation_id);
 
         $this->service->resendInvitation($invitation);
-        
+
         return $this->success(
             $invitation,
             'Invitation resent successfully'

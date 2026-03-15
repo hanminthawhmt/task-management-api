@@ -55,9 +55,10 @@ class ProjectInvitationController extends Controller
         return $this->success(null, 'Invitation declined');
     }
 
-    public function reinvite($id)
+    public function reinvite($id, $invitation_id)
     {
-        $invitation = ProjectInvitation::findOrFail($id);
+        // $invitation = ProjectInvitation::findOrFail($id);
+        $invitation = ProjectInvitation::where('project_id', $id)->findOrFail($invitation_id);
 
         $this->service->resendInvitation($invitation);
 
