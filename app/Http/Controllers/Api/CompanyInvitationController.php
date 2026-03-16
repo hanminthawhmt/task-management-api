@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SendInvitationRequest;
+use App\Models\Company;
 use App\Models\CompanyInvitation;
 use App\Models\Role;
 use App\Services\Invitation\CompanyInvitationService;
@@ -12,7 +13,7 @@ class CompanyInvitationController extends Controller
     public function __construct(protected CompanyInvitationService $service)
     {}
 
-    public function invite(SendInvitationRequest $request, $id)
+    public function invite(SendInvitationRequest $request, Company $company)
     {
         $user = auth()->user();
 
@@ -22,7 +23,7 @@ class CompanyInvitationController extends Controller
             ->where('scope', Role::COMPANY)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($id, $data['role_id'], $data['email'], $user->id);
+        $invitation = $this->service->sendInvitation($company->id, $data['role_id'], $data['email'], $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -35,11 +36,11 @@ class CompanyInvitationController extends Controller
         return $this->success(null, 'Invitation declined');
     }
 
-    public function reinvite($id, $invitation_id)
+    public function reinvite(Company $company, CompanyInvitation $invitation)
     {
         // $invitation = CompanyInvitation::findOrFail($id);
         // $invitation = CompanyInvitation::where('company_id', $id)->where('id', $invitation_id)->first();
-        $invitation = CompanyInvitation::where('company_id', $id)->findOrFail($invitation_id);
+        $invitation = CompanyInvitation::where('company_id', $company->id)->findOrFail($invitation->id);
 
         $this->service->resendInvitation($invitation);
 

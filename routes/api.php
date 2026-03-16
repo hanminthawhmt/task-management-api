@@ -26,12 +26,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('companies', [CompanyController::class, 'index']);
 
     //Company Workspace Invitation
-    Route::post('companies/{id}/invite', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
-    Route::post('companies/{id}/invitations/{invitation_id}/reinvite', [CompanyInvitationController::class, 'reinvite'])->middleware('company.permission:invite_company_member');
+    Route::post('companies/{company}/invite', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
+    Route::post('companies/{company}/invitations/{invitation}/reinvite', [CompanyInvitationController::class, 'reinvite'])->middleware('company.permission:invite_company_member');
 
     // Projects Invitation
     Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
-    Route::post('companies/{id}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
+    Route::post('companies/{company}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
     Route::post('projects/{id}/invitations/{invitation_id}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
 
     // Tasks

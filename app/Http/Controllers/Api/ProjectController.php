@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Company;
 use App\Models\Project;
 use App\Services\Project\ProjectService;
 use Illuminate\Http\Request;
@@ -30,11 +31,11 @@ class ProjectController extends Controller
      */
     // CREATE a project
     // The one who creates the project becomes the project owner
-    public function store(StoreProjectRequest $request, $id)
+    public function store(StoreProjectRequest $request, Company $company)
     {
         //$this->authorize('create', Project::class);
 
-        $project = $this->projectService->createProject($request->validated(), $id, auth()->user());
+        $project = $this->projectService->createProject($request->validated(), $company->id, auth()->user());
 
         return $this->success($project, 'A project has been successfully created');
     }

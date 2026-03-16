@@ -27,9 +27,9 @@ class CompanyPermissionMiddleware
             ], 401);
         }
 
-        $companyId = $request->route('id') ?? $request->input('company_id');
+        $companyParameter = $request->route('company') ?? $request->route('id') ?? $request->input('company_id');
 
-        $company = Company::findOrFail($companyId);
+        $company = $companyParameter instanceof Company ? $companyParameter : Company::findOrFail($companyParameter);
 
         if (! $this->service->hasPermission($user, $company, $permission)) {
             return response()->json([
