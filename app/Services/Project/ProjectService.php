@@ -4,7 +4,6 @@ namespace App\Services\Project;
 use App\Jobs\SendProjectInvitationEmail;
 use App\Models\CompanyMember;
 use App\Models\Project;
-use App\Models\ProjectMember;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
