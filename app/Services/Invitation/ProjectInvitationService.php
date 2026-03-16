@@ -6,13 +6,16 @@ use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\ProjectMember;
 use App\Models\User;
+use App\Services\ActivityLog\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class ProjectInvitationService
 {
-    public function sendInvitation($projectId, $email, $roleId, $invitedBy)
+    public function __construct(protected ActivityLogService $logService)
+    {}
+    public function sendInvitation($projectId, $email, $roleId, $User)
     {
         $project = Project::findOrFail($projectId);
 
@@ -44,7 +47,7 @@ class ProjectInvitationService
             'project_id' => $projectId,
             'role_id'    => $roleId,
             'email'      => $email,
-            'invited_by' => $invitedBy,
+            'invited_by' => $User->id,
             'token'      => $token,
             'status'     => 'pending',
             'expires_at' => now()->addDays(3),
@@ -57,6 +60,9 @@ class ProjectInvitationService
         );
 
         \Log::info('Invitation signed URL: ' . $acceptUrl);
+
+        // Activity Log Here
+        $this->logService->log($User, 'invited_project_member', $invitation, ['email' => $email]);
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
 
@@ -101,6 +107,8 @@ class ProjectInvitationService
             ]);
         });
 
+        $this->logService->log($user, 'accept_project_invitation', $invitation, ['email' => $invitation->email]);
+
         return $invitation->fresh();
     }
 
@@ -117,7 +125,7 @@ class ProjectInvitationService
         return $invitation;
     }
 
-    public function resendInvitation($invitation)
+    public function resendInvitation($invitation, $user)
     {
 
         if ($invitation->status === 'accepted') {
@@ -139,6 +147,8 @@ class ProjectInvitationService
             now()->addDays(3),
             ['token' => $invitation->token]
         );
+
+        $this->logService->log($user, 'resent_project_invitation', $invitation, ['email' => $invitation->email]);
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
     }

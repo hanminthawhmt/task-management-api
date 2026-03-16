@@ -5,12 +5,15 @@ use App\Jobs\SendProjectInvitationEmail;
 use App\Models\CompanyMember;
 use App\Models\Project;
 use App\Models\Role;
+use App\Services\ActivityLog\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class ProjectService
 {
+    public function __construct(protected ActivityLogService $logService)
+    {}
     public function createProject($data, $companyId, $user)
     {
         return DB::transaction(function () use ($data, $companyId, $user) {
@@ -21,6 +24,8 @@ class ProjectService
                 'created_by'  => $user->id,
                 'company_id'  => $companyId,
             ]);
+
+            $this->logService->log($user, 'created_project', $project);
 
             $roleId = Role::where('title', Role::OWNER)->where('scope', Role::PROJECT)->value('id');
 
@@ -66,10 +71,11 @@ class ProjectService
                 ['token' => $token]
             );
 
+            $this->logService->log($user, 'invited_project_member', $project);
+
             \Log::info('Invitation signed URL: ' . $acceptUrl);
 
             SendProjectInvitationEmail::dispatch($invitation, $acceptUrl)->afterCommit();
-
         }
 
     }

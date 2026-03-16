@@ -15,15 +15,13 @@ class CompanyInvitationController extends Controller
 
     public function invite(SendInvitationRequest $request, Company $company)
     {
-        $user = auth()->user();
-
         $data = $request->validated();
 
         $data['role_id'] = Role::where('title', Role::MEMBER)
             ->where('scope', Role::COMPANY)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($company->id, $data['role_id'], $data['email'], $user->id);
+        $invitation = $this->service->sendInvitation($company, $data['role_id'], $data['email'], auth()->user());
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -42,7 +40,7 @@ class CompanyInvitationController extends Controller
         // $invitation = CompanyInvitation::where('company_id', $id)->where('id', $invitation_id)->first();
         $invitation = CompanyInvitation::where('company_id', $company->id)->findOrFail($invitation->id);
 
-        $this->service->resendInvitation($invitation);
+        $this->service->resendInvitation($invitation, auth()->user());
 
         return $this->success(
             $invitation,

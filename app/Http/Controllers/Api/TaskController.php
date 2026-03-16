@@ -78,12 +78,9 @@ class TaskController extends Controller
     // Admin can mark the assignee task as complete
     // Manager can mark the assignee task as complete
     // Assignee can only mark their assigned task
-    public function markAsComplete($id)
+    public function markAsComplete(Task $task)
     {
-        $user = auth()->user();
-        $task = Task::findOrFail($id);
-
-        $updateTask = $this->taskService->markAsComplete($task, $user);
+        $updateTask = $this->taskService->markAsComplete($task, auth()->user());
         return $this->success(
             new TaskResource($updateTask),
             'Task marked as completed'
@@ -91,13 +88,10 @@ class TaskController extends Controller
     }
 
     // Quick Action
-    public function updateStatus($id)
+    public function updateStatus(Task $task)
     {
-        $user = auth()->user();
-        $task = Task::findOrFail($id);
-        $newStatus = $task->status === 'pending' ? 'complete' : 'pending';
-        $task->update(['status' => $newStatus]);
-        return $this->success(new TaskResource($task), "Task status changed to {$newStatus}");
+        $updatedTask = $this->taskService->toggleStatus($task, auth()->user());
+        return $this->success(new TaskResource($updatedTask), "Task status changed to {$updatedTask->status}");
     }
 
     /**

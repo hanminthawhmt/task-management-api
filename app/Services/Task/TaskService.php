@@ -3,11 +3,12 @@ namespace App\Services\Task;
 
 use App\Models\ProjectMember;
 use App\Models\Task;
+use App\Services\ActivityLog\ActivityLogService;
 use App\Services\Permission\ProjectPermissionService;
 
 class TaskService
 {
-    public function __construct(protected ProjectPermissionService $service)
+    public function __construct(protected ProjectPermissionService $service, protected ActivityLogService $logService)
     {}
     public function createTask($data, $user)
     {
@@ -18,15 +19,27 @@ class TaskService
             'created_by' => $user->id,
         ]);
 
+        $this->logService->log($user, 'created_a_task', $task);
+
         return $task;
 
     }
+
     public function markAsComplete($task, $user)
     {
         $task->update(['status' => 'complete']);
+        $this->logService->log($user, 'mark_the_task_as_complete', $task);
         return $task->refresh();
     }
 
+    public function toggleStatus($task, $user)
+    {
+        $oldStatus = $task->status;
+        $newStatus = $oldStatus === 'pending' ? 'complete' : 'pending';
+        $task->update(['status' => $newStatus]);
+        $this->logService->log($user, 'update_the_task_status', $task, ["status" => $newStatus]);
+        return $task;
+    }
     public function getTasksForProject($project, $user)
     {
         // check if that user belongs to the project first
