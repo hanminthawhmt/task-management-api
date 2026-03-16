@@ -5,6 +5,7 @@ use App\Jobs\SendCompanyInvitationEmail;
 use App\Models\CompanyInvitation;
 use App\Models\CompanyMember;
 use App\Models\User;
+use App\Services\ActivityLog\ActivityLogService;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -13,23 +14,21 @@ class CompanyInvitationService
     /**
      * Create a new class instance.
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(protected ActivityLogService $logService)
+    {}
 
-    public function sendInvitation($companyId, $roleId, $email, $userId)
+    public function sendInvitation($company, $roleId, $email, $User)
     {
         $user = User::where('email', $email)->first();
 
-        $existingEmployee = CompanyMember::where('company_id', $companyId)
+        $existingEmployee = CompanyMember::where('company_id', $company->id)
             ->whereHas('user', fn($q) => $q->where('email', $email))->exists();
 
         if ($existingEmployee) {
             throw new \Exception('User already in this organization.');
         }
 
-        $existingInvite = CompanyInvitation::where('company_id', $companyId)
+        $existingInvite = CompanyInvitation::where('company_id', $company->id)
             ->where('email', $email)
             ->where('status', 'pending')
             ->first();
@@ -41,12 +40,12 @@ class CompanyInvitationService
         $token = Str::uuid();
 
         $invitation = CompanyInvitation::create([
-            'company_id' => $companyId,
+            'company_id' => $company->id,
             'email'      => $email,
             'role_id'    => $roleId,
             'token'      => $token,
             'status'     => 'pending',
-            'invited_by' => $userId,
+            'invited_by' => $User->id,
             'expires_at' => now()->addDays(3),
         ]);
 
@@ -56,6 +55,7 @@ class CompanyInvitationService
             ['token' => $token]
         );
 
+        $this->logService->log($User, 'invited_company_member', $invitation, ['email' => $email]);
         SendCompanyInvitationEmail::dispatch($invitation, $acceptUrl);
 
         return $invitation;

@@ -15,15 +15,13 @@ class CompanyInvitationController extends Controller
 
     public function invite(SendInvitationRequest $request, Company $company)
     {
-        $user = auth()->user();
-
         $data = $request->validated();
 
         $data['role_id'] = Role::where('title', Role::MEMBER)
             ->where('scope', Role::COMPANY)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($company->id, $data['role_id'], $data['email'], $user->id);
+        $invitation = $this->service->sendInvitation($company, $data['role_id'], $data['email'], auth()->user());
 
         return $this->success($invitation, 'An invitation sent successfully');
 
