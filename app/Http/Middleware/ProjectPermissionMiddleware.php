@@ -38,25 +38,16 @@ class ProjectPermissionMiddleware
 
     private function resolveProject(Request $request): Project
     {
-        if ($request->route('id')) {
-            return Project::findOrFail($request->route('id'));
+        $projectParam = $request->route('project') ?? $request->route('id') ?? $request->input('project_id');
+
+        if ($projectParam) {
+            return $projectParam instanceof Project ? $projectParam : Project::findOrFail($projectParam);
         }
 
-        if ($request->input('project_id')) {
-            return Project::findOrFail($request->input('project_id'));
-        }
+        $taskParam = $request->route('task');
 
-        if ($request->route('task')) {
-            $task = $request->route('task');
-
-            // If route model binding already returned a Task model
-            if ($task instanceof Task) {
-                return $task->project;
-            }
-
-            // if it is only an id
-            $task = Task::findOrFail($task);
-
+        if ($taskParam) {
+            $task = $taskParam instanceof Task ? $taskParam : Task::findOrFail($taskParam);
             return $task->project;
         }
 
