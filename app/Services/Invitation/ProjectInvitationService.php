@@ -107,6 +107,8 @@ class ProjectInvitationService
             ]);
         });
 
+        $this->logService->log($user, 'accept_project_invitation', $invitation, ['email' => $invitation->email]);
+
         return $invitation->fresh();
     }
 
@@ -123,7 +125,7 @@ class ProjectInvitationService
         return $invitation;
     }
 
-    public function resendInvitation($invitation)
+    public function resendInvitation($invitation, $user)
     {
 
         if ($invitation->status === 'accepted') {
@@ -145,6 +147,8 @@ class ProjectInvitationService
             now()->addDays(3),
             ['token' => $invitation->token]
         );
+
+        $this->logService->log($user, 'resent_project_invitation', $invitation, ['email' => $invitation->email]);
 
         SendProjectInvitationEmail::dispatch($invitation, $acceptUrl);
     }

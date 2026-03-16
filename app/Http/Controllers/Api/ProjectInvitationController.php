@@ -60,7 +60,7 @@ class ProjectInvitationController extends Controller
     {
         $invitation = ProjectInvitation::where('project_id', $project->id)->findOrFail($invitation->id);
 
-        $this->service->resendInvitation($invitation);
+        $this->service->resendInvitation($invitation, auth()->user());
 
         return $this->success(
             $invitation,

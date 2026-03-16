@@ -71,11 +71,11 @@ class CompanyInvitationService
         }
 
         $invitation->update(['status' => 'declined']);
-
+        
         return $invitation;
     }
 
-    public function resendInvitation($invitation)
+    public function resendInvitation($invitation, $user)
     {
         if ($invitation->status === 'accepted') {
             throw new \Exception("Invitation already accepted");
@@ -96,6 +96,8 @@ class CompanyInvitationService
             now()->addDays(3),
             ['token' => $invitation->token]
         );
+
+        $this->logService->log($user, 'resent_company_invitation', $invitation, ['email' => $invitation->email]);
 
         SendCompanyInvitationEmail::dispatch($invitation, $acceptUrl);
     }

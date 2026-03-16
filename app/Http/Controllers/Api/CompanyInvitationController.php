@@ -40,7 +40,7 @@ class CompanyInvitationController extends Controller
         // $invitation = CompanyInvitation::where('company_id', $id)->where('id', $invitation_id)->first();
         $invitation = CompanyInvitation::where('company_id', $company->id)->findOrFail($invitation->id);
 
-        $this->service->resendInvitation($invitation);
+        $this->service->resendInvitation($invitation, auth()->user());
 
         return $this->success(
             $invitation,
