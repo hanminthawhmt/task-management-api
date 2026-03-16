@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use App\Services\Task\TaskService;
 
 class TaskController extends Controller
@@ -34,7 +33,6 @@ class TaskController extends Controller
     // user who has permissions of create_task can create a task
     public function store(StoreTaskRequest $request)
     {
-        // $this->authorize('create', Task::class);
         $user = auth()->user();
 
         $task = $this->taskService->createTask($request, $user);
@@ -97,9 +95,6 @@ class TaskController extends Controller
     {
         $user = auth()->user();
         $task = Task::findOrFail($id);
-
-        //$this->authorize('updateStatus', $task);
-
         $newStatus = $task->status === 'pending' ? 'complete' : 'pending';
         $task->update(['status' => $newStatus]);
         return $this->success(new TaskResource($task), "Task status changed to {$newStatus}");
@@ -112,34 +107,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $user = auth()->user();
-        // $task = Task::findOrFail($id);
-
-        // $role = $user->role->title;
-
-        // $this->authorize('delete', $task);
-
         $task->delete();
         return $this->success(null, 'Task deleted successfully.', 200);
     }
-
-    // Admin -> can see the list of specific user tasks
-    // Manager -> can see the list of specfic user tasks
-    public function getUserTasks($id)
-    {
-
-        $this->authorize('getUserTask', Task::class);
-
-        $user = User::find($id);
-
-        if (! $user) {
-            return response()->json([
-                'message' => 'User not found',
-            ], 404);
-        }
-
-        $tasks = Task::where('user_id', $id)->with(['assignee', 'creator'])->get();
-
-        return $this->success(TaskResource::collection($tasks), 'User tasks retrieved successfully');
-    }
-
 }
