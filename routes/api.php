@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\CompanyInvitationController;
@@ -34,12 +35,24 @@ Route::middleware('auth:api')->group(function () {
     Route::post('companies/{company}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
     Route::post('projects/{project}/invitations/{invitation}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
 
-    // Tasks
+                                                                              // Tasks
     Route::get('projects/{project}/tasks', [TaskController::class, 'index']); // middleware is check inside the service
     Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete'])->middleware('project.permission:update_task');
     Route::patch('tasks/{task}/update', [TaskController::class, 'updateStatus'])->middleware('project.permission:update_task');
     Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
     Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->middleware('project.permission:delete_task');
+
+    Route::get(
+        'projects/{project}/activities',
+        [ActivityController::class, 'projectFeed']
+    );
+    // ->middleware('project.permission:view_project');
+
+    Route::get(
+        'companies/{company}/activities',
+        [ActivityController::class, 'companyFeed']
+    );
+    // ->middleware('company.permission:view_company');
 
 });
 
