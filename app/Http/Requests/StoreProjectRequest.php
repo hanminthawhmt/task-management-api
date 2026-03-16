@@ -21,8 +21,10 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => 'required|string|max:250',
-            'description' => 'nullable|string',
+            'title'           => 'required|string|max:250',
+            'description'     => 'nullable|string',
+            'invite_emails'   => 'nullable|array',
+            'invite_emails.*' => 'email',
         ];
     }
 }

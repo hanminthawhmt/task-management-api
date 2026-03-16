@@ -32,7 +32,6 @@ Route::middleware('auth:api')->group(function () {
     // Projects Invitation
     Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
     Route::post('companies/{id}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
-    Route::post('projects/invitations/send', [ProjectInvitationController::class, 'createProjectAndInvite'])->middleware('company.permission:create_project');
     Route::post('projects/{id}/invitations/{invitation_id}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
 
     // Tasks

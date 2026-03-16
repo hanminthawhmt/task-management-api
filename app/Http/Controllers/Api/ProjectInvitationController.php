@@ -85,28 +85,4 @@ class ProjectInvitationController extends Controller
             'project_id' => $invitation->project_id,
         ]);
     }
-
-    // create project and invite members at the same time
-    public function createProjectAndInvite(Request $request)
-    {
-        $user = auth()->user();
-
-        if (! $user) {
-            abort(401, "You must login first.");
-        }
-
-        $data = $request->validate([
-            'project_name'        => 'required|string',
-            'project_description' => 'required|string',
-            'company_id'          => 'required|integer|exists:companies,id',
-            'invite_emails'       => 'nullable|array',
-            'invite_emails.*'     => 'email|distinct',
-        ]);
-
-        $data['created_by'] = $user->id;
-
-        $project = $this->service->createProjectWithMember($data, $user);
-
-        return $this->success($project, 'Project has been successfully created');
-    }
 }
