@@ -5,6 +5,7 @@ use App\Models\CompanyMember;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 class ProjectPermissionService
 {
@@ -31,15 +32,29 @@ class ProjectPermissionService
             return true;
         }
 
-        $membership = ProjectMember::where('project_id', $project->id)
-            ->where('user_id', $user->id)
-            ->with('role.permissions')->first();
+        $cacheKey = "project_permissions_{$user->id}_{$project->id}";
 
-        if (! $membership) {
-            return false;
-        }
+        $permissions = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $project) {
 
-        return $membership->role->permissions
-            ->contains('name', $permission);
+            $membership = ProjectMember::where('project_id', $project->id)
+                ->where('user_id', $user->id)
+                ->with('role.permissions')->first();
+
+            if (! $membership) {
+                return [];
+            }
+
+            return $membership->role->permissions
+                ->pluck('name')
+                ->toArray();
+        });
+
+        return in_array($permission, $permissions);
     }
+
+    public function clearProjectPermissionCache($userId, $projectId)
+    {
+        Cache::forget("project_permissions_{$userId}_{$projectId}");
+    }
+    
 }
