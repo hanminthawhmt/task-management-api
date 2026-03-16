@@ -30,23 +30,16 @@ Route::middleware('auth:api')->group(function () {
     Route::post('companies/{company}/invitations/{invitation}/reinvite', [CompanyInvitationController::class, 'reinvite'])->middleware('company.permission:invite_company_member');
 
     // Projects Invitation
-    Route::post('projects/{id}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
+    Route::post('projects/{project}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
     Route::post('companies/{company}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
-    Route::post('projects/{id}/invitations/{invitation_id}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
+    Route::post('projects/{project}/invitations/{invitation}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
 
     // Tasks
+    Route::get('projects/{project}/tasks', [TaskController::class, 'index']); // middleware is check inside the service
     Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete'])->middleware('project.permission:update_task');
     Route::patch('tasks/{task}/update', [TaskController::class, 'updateStatus'])->middleware('project.permission:update_task');
     Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
-    Route::delete('tasks/{id}', [TaskController::class, 'destroy'])->middleware('project.permission:delete_task');
-
-    // Route::apiResource('tasks', TaskController::class);
-
-    // Route::get('users/{id}/tasks', [TaskController::class, 'getUserTasks']);
-
-    Route::get('projects/{id}/tasks', [ProjectController::class, 'getProjectTasks']);
-    Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
-    Route::apiResource('projects', ProjectController::class);
+    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->middleware('project.permission:delete_task');
 
 });
 

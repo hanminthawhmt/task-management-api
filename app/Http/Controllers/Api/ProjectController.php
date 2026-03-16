@@ -40,20 +40,6 @@ class ProjectController extends Controller
         return $this->success($project, 'A project has been successfully created');
     }
 
-    // Add members to the project
-    public function addMember(Request $request, $projectId)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
-        $project = Project::findOrFail($projectId);
-        $member  = $this->projectService->addMember($project, $request->user_id, $request->role_id);
-
-        return $this->success($member, 'Member added successfully');
-    }
-
     /**
      * Display the specified resource.
      */
@@ -79,23 +65,4 @@ class ProjectController extends Controller
     {
         //
     }
-
-    // Admin -> can see all of the assigned task list from the projects
-    // Manager -> can see all of the assigned task list from the projects
-    // Member -> can see only their task from the projects
-    public function getProjectTasks($id)
-    {
-        $project = Project::findOrFail($id);
-
-        // $this->authorize('viewProjectTasks', Project::class);
-
-        $tasks = $this->projectService->getProjectTasks($project, auth()->user());
-
-        return $this->success(
-            TaskResource::collection($tasks),
-            'Project tasks retrieved successfully'
-        );
-
-    }
-
 }
