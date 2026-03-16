@@ -43,18 +43,11 @@ Route::middleware('auth:api')->group(function () {
 
 });
 
-// can register as a company owner or can register as a company member using invitation token
 Route::post('register', [AuthController::class, 'register']);
-// can register as a platform admin
 Route::post('admin/register', [AuthController::class, 'registerAsAdmin']);
-// login for everyone in the system
 Route::post('login', [AuthController::class, 'login']);
-
 Route::apiResource('roles', RoleController::class);
-
 Route::apiResource('invitations', CompanyInvitationController::class);
-
-// Route::apiResource('invitations', ProjectInvitationController::class);
 Route::get('invitations/accept/{token}', [ProjectInvitationController::class, 'accept'])->middleware('signed')->name('invitation.accept');
 Route::get('invitations/decline/{token}', [ProjectInvitationController::class, 'decline']);
 
