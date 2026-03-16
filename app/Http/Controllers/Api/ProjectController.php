@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
-use App\Http\Resources\TaskResource;
+use App\Models\Company;
 use App\Models\Project;
 use App\Services\Project\ProjectService;
 use Illuminate\Http\Request;
@@ -30,30 +30,13 @@ class ProjectController extends Controller
      */
     // CREATE a project
     // The one who creates the project becomes the project owner
-    public function store(StoreProjectRequest $request, $id)
+    public function store(StoreProjectRequest $request, Company $company)
     {
-
         //$this->authorize('create', Project::class);
-        $data = $request->validated();
 
-        $project = $this->projectService->createProject($data, $id, auth()->user());
+        $project = $this->projectService->createProject($request->validated(), $company->id, auth()->user());
 
         return $this->success($project, 'A project has been successfully created');
-
-    }
-
-    // Add members to the project
-    public function addMember(Request $request, $projectId)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
-        $project = Project::findOrFail($projectId);
-        $member  = $this->projectService->addMember($project, $request->user_id, $request->role_id);
-
-        return $this->success($member, 'Member added successfully');
     }
 
     /**
@@ -81,23 +64,4 @@ class ProjectController extends Controller
     {
         //
     }
-
-    // Admin -> can see all of the assigned task list from the projects
-    // Manager -> can see all of the assigned task list from the projects
-    // Member -> can see only their task from the projects
-    public function getProjectTasks($id)
-    {
-        $project = Project::findOrFail($id);
-
-        // $this->authorize('viewProjectTasks', Project::class);
-
-        $tasks = $this->projectService->getProjectTasks($project, auth()->user());
-
-        return $this->success(
-            TaskResource::collection($tasks),
-            'Project tasks retrieved successfully'
-        );
-
-    }
-
 }

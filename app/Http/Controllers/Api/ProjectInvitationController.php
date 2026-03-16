@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\Role;
 use App\Services\Invitation\ProjectInvitationService;
@@ -15,7 +16,7 @@ class ProjectInvitationController extends Controller
         $this->service = $invitationService;
     }
 
-    public function invite(Request $request, $id)
+    public function invite(Request $request, Project $project)
     {
         $user = auth()->user();
         $data = $request->validate([
@@ -28,7 +29,7 @@ class ProjectInvitationController extends Controller
             ->where('scope', Role::PROJECT)
             ->value('id');
 
-        $invitation = $this->service->sendInvitation($id, $data['email'], $roleId, $user->id);
+        $invitation = $this->service->sendInvitation($project->id, $data['email'], $roleId, $user->id);
 
         return $this->success($invitation, 'An invitation sent successfully');
 
@@ -55,10 +56,9 @@ class ProjectInvitationController extends Controller
         return $this->success(null, 'Invitation declined');
     }
 
-    public function reinvite($id, $invitation_id)
+    public function reinvite(Project $project, ProjectInvitation $invitation)
     {
-        // $invitation = ProjectInvitation::findOrFail($id);
-        $invitation = ProjectInvitation::where('project_id', $id)->findOrFail($invitation_id);
+        $invitation = ProjectInvitation::where('project_id', $project->id)->findOrFail($invitation->id);
 
         $this->service->resendInvitation($invitation);
 
@@ -84,29 +84,5 @@ class ProjectInvitationController extends Controller
             'email'      => $invitation->email,
             'project_id' => $invitation->project_id,
         ]);
-    }
-
-    // create project and invite members at the same time
-    public function createProjectAndInvite(Request $request)
-    {
-        $user = auth()->user();
-
-        if (! $user) {
-            abort(401, "You must login first.");
-        }
-
-        $data = $request->validate([
-            'project_name'        => 'required|string',
-            'project_description' => 'required|string',
-            'company_id'          => 'required|integer|exists:companies,id',
-            'invite_emails'       => 'nullable|array',
-            'invite_emails.*'     => 'email|distinct',
-        ]);
-
-        $data['created_by'] = $user->id;
-
-        $project = $this->service->createProjectWithMember($data, $user);
-
-        return $this->success($project, 'Project has been successfully created');
     }
 }

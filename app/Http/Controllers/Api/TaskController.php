@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\Task\TaskService;
@@ -20,18 +21,11 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Project $project)
     {
-        // get the current authenticated user
-        $user = auth()->user();
-        // get the user'role
-        $role = $user->role->title;
+        $tasks = $this->taskService->getTasksForProject($project, auth()->user());
 
-        if ($role === 'admin' || $role === 'manager') {
-            return Task::with(['assignee', 'creator', 'project'])->get();
-        }
-
-        return Task::with(['assignee', 'creator'])->where('user_id', $user->id)->get();
+        return $this->success($tasks, 'Tasks retrieved successfully');
     }
 
     /**
@@ -115,14 +109,14 @@ class TaskController extends Controller
      * Remove the specified resource from storage.
      */
     // user who has the permission of delete_task can delete a task
-    public function destroy($id)
+    public function destroy(Task $task)
     {
         $user = auth()->user();
-        $task = Task::findOrFail($id);
+        // $task = Task::findOrFail($id);
 
-        $role = $user->role->title;
+        // $role = $user->role->title;
 
-        $this->authorize('delete', $task);
+        // $this->authorize('delete', $task);
 
         $task->delete();
         return $this->success(null, 'Task deleted successfully.', 200);
