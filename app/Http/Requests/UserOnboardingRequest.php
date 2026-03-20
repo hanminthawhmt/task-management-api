@@ -26,6 +26,7 @@ class UserOnboardingRequest extends FormRequest
             'password'         => 'required|min:6',
             'company_name'     => 'nullable|string|unique:companies,name',
             'invitation_token' => 'nullable|string',
+            'plan_id'          => 'required|integer|exists:plans,id',
         ];
     }
 }
