@@ -1,12 +1,9 @@
 <?php
 namespace App\Providers;
 
-use App\Models\Project;
-use App\Models\Task;
-use App\Policies\ProjectPolicy;
-use App\Policies\TaskPolicy;
-use Illuminate\Support\Facades\Gate;
+use App\Models\Company;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::policy(Project::class, ProjectPolicy::class);
-        Gate::policy(Task::class, TaskPolicy::class);
+        Cashier::useCustomerModel(Company::class);
     }
 }

@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
-            $table->foreignId('plan_id')->constrained('plans');
-
-            $table->string('stripe_subscription_id')->nullable();
-            $table->string('stripe_customer_id')->nullable();
-
-            $table->timestamp('starts_at');
+            $table->foreignId('company_id');
+            $table->string('type');
+            $table->string('stripe_id')->unique();
+            $table->string('stripe_status');
+            $table->string('stripe_price')->nullable();
+            $table->integer('quantity')->nullable();
+            $table->timestamp('trial_ends_at')->nullable();
             $table->timestamp('ends_at')->nullable();
-            
             $table->timestamps();
+
+            $table->index(['company_id', 'stripe_status']);
         });
     }
 

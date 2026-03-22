@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +55,10 @@ Route::middleware('auth:api')->group(function () {
         [ActivityController::class, 'companyFeed']
     );
     // ->middleware('company.permission:view_company');
+
+    Route::post('checkout', [BillingController::class, 'checkout']);
+
+    Route::post('webhooks/stripe', [StripeWebhookController::class, 'handle']);
 
 });
 

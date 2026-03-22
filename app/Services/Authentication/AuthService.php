@@ -4,7 +4,9 @@ namespace App\Services\Authentication;
 use App\Models\Company;
 use App\Models\CompanyInvitation;
 use App\Models\CompanyMember;
+use App\Models\Plan;
 use App\Models\Role;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +89,14 @@ class AuthService
                     'role_id'    => Role::where('title', Role::OWNER)->
                         where('scope', Role::COMPANY)
                         ->value('id'),
+                ]);
+
+                $plan = Plan::findOrFail($data['plan_id']);
+
+                Subscription::create([
+                    'company_id' => $company->id,
+                    'plan_id'    => $plan->id,
+                    'starts_at'  => NOW(),
                 ]);
 
             }
