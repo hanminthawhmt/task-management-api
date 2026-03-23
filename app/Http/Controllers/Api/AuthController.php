@@ -39,13 +39,14 @@ class AuthController extends Controller
         $result = $this->service->registration($data);
 
         return response()->json([
-            'status'        => 'success',
-            'message'       => 'User created successfully',
-            'user'          => new UserResource($result['user']),
-            'authorisation' => [
+            'status'           => 'success',
+            'message'          => 'User created successfully',
+            'user'             => new UserResource($result['user']),
+            'authorisation'    => [
                 'token' => $result['token'],
                 'type'  => 'bearer',
             ],
+            'requires_payment' => $result['requires_payment'],
         ]);
     }
 

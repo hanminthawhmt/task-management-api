@@ -3,8 +3,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use Illuminate\Http\Request;
-use Stripe\Checkout\Session;
-use Stripe\Stripe;
 
 class BillingController extends Controller
 {
@@ -18,33 +16,37 @@ class BillingController extends Controller
         ]);
 
         $company = $user->companies()
-            ->where('company_id', $request->company_id)->firstOrFail();
+            ->where('company_id', $request->company_id)
+            ->firstOrFail();
 
         $plan = Plan::findOrFail($request->plan_id);
 
-        Stripe::setApiKey(config('services.stripe.secret'));
+        if ($plan->is_free) {
+            return response()->json([
+                'message' => 'Free plan does not require checkout',
+            ], 400);
+        }
 
-        $session = Session::create([
-            'mode'                 => 'subscription',
-            'payment_method_types' => ['card'],
-            'customer_email'       => $user->email,
-            'line_items'           => [[
-                'price'    => $plan->stripe_price_id,
-                'quantity' => 1,
-            ]],
-            'success_url'          => 'http://localhost/task-management-api/public/success',
-            'cancel_url'           => 'http://localhost/task-management-api/public/cancel',
-            'metadata'             => [
-                'company_id' => $company->id,
-                'plan_id'    => $plan->id,
-            ],
-        ]);
+        $checkout = $company
+            ->newSubscription('default', $plan->stripe_price_id)
+            ->checkout([
+                'success_url'       => 'http://localhost/task-management-api/public/api/success',
+                'cancel_url'        => 'http://localhost/task-management-api/public/api/cancel',
+
+                'metadata'          => [
+                    'company_id' => $company->id,
+                    'plan_id'    => $plan->id,
+                ],
+
+                'subscription_data' => [
+                    'metadata' => [
+                        'company_id' => $company->id,
+                    ],
+                ],
+            ]);
 
         return response()->json([
-            'url' => $session->url,
+            'url' => $checkout->url,
         ]);
-
-        // return redirect($session->url);
-
     }
 }

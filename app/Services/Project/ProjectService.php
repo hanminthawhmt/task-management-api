@@ -5,7 +5,7 @@ use App\Jobs\SendProjectInvitationEmail;
 use App\Models\CompanyMember;
 use App\Models\Project;
 use App\Models\Role;
-use App\Models\Subscription;
+// use App\Models\Subscription;
 use App\Services\ActivityLog\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
@@ -18,13 +18,13 @@ class ProjectService
     public function createProject($data, $companyId, $user)
     {
         return DB::transaction(function () use ($data, $companyId, $user) {
-            $subscription = Subscription::where('company_id', $companyId)->with('plan')->latest()->first();
+            // $subscription = Subscription::where('company_id', $companyId)->with('plan')->latest()->first();
 
             $projectCount = Project::where('company_id', $companyId)->count();
 
-            if ($subscription->plan->max_projects !== null && $projectCount >= $subscription->plan->max_projects) {
-                throw new \Exception('Project Limit reached. Upgrade your plan');
-            }
+            // if ($subscription->plan->max_projects !== null && $projectCount >= $subscription->plan->max_projects) {
+            //     throw new \Exception('Project Limit reached. Upgrade your plan');
+            // }
 
             $project = Project::create([
                 'title'       => $data['title'],

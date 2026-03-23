@@ -4,11 +4,12 @@ namespace App\Models;
 use App\Models\CompanyMember;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Billable;
+use Laravel\Cashier\Subscription;
 
 class Company extends Model
 {
     use Billable;
-    
+
     protected $fillable = [
         'name',
         'created_by',
@@ -34,6 +35,11 @@ class Company extends Model
         return $this->belongsToMany(User::class, 'company_members')
             ->withPivot('role_id')
             ->withTimestamps();
+    }
+
+    public function subscriptions()
+    {
+        return $this->morphMany(Subscription::class, 'billable');
     }
 
 }
