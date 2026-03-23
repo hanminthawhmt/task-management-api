@@ -18,7 +18,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:api', 'subscription.active' )->group(function () {
 
     // logout
     Route::post('logout', [AuthController::class, 'logout']);

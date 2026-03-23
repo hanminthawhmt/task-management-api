@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CompanyPermissionMiddleware;
+use App\Http\Middleware\EnsureSubscriptionIsActive;
 use App\Http\Middleware\ProjectPermissionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,8 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         $middleware->alias([
-            'company.permission' => CompanyPermissionMiddleware::class,
-            'project.permission' => ProjectPermissionMiddleware::class,
+            'company.permission'  => CompanyPermissionMiddleware::class,
+            'project.permission'  => ProjectPermissionMiddleware::class,
+            'subscription.active' => EnsureSubscriptionIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

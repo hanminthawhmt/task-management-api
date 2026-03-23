@@ -31,91 +31,6 @@ class AuthService
 
     }
 
-    // public function registration($data)
-    // {
-    //     return DB::transaction(function () use ($data) {
-
-    //         $data['password']      = Hash::make($data['password']);
-    //         $data['platform_role'] = 'user';
-
-    //         $invitation = null;
-
-    //         if (! empty($data['invitation_token'])) {
-    //             $invitation = CompanyInvitation::where('token', $data['invitation_token'])->firstOrFail();
-
-    //             if ($invitation->status !== 'pending') {
-    //                 throw new \Exception('Invitation already used');
-    //             }
-
-    //             if ($invitation->email !== $data['email']) {
-    //                 throw new \Exception('Invitation email mismatch.');
-    //             }
-
-    //             if ($invitation->expires_at && now()->gt($invitation->expires_at)) {
-    //                 throw new \Exception("Invitation expired.");
-    //             }
-    //         }
-
-    //         $user = User::create($data);
-
-    //         $plan = Plan::findOrFail($data['plan_id']);
-
-    //         if ($invitation) {
-    //             $company = Company::findOrFail($invitation->company_id);
-
-    //             $membership = CompanyMember::create([
-    //                 'company_id' => $company->id,
-    //                 'user_id'    => $user->id,
-    //                 'role_id'    => Role::where('title', Role::MEMBER)
-    //                     ->where('scope', Role::COMPANY)
-    //                     ->value('id'),
-    //             ]);
-
-    //             $invitation->update([
-    //                 'status'      => 'accepted',
-    //                 'accepted_at' => NOW(),
-
-    //             ]);
-
-    //         } else {
-    //             // normal company registration
-    //             $company = Company::create([
-    //                 'name'       => $data['company_name'],
-    //                 'created_by' => $user->id,
-    //             ]);
-
-    //             $membership = CompanyMember::create([
-    //                 'company_id' => $company->id,
-    //                 'user_id'    => $user->id,
-    //                 'role_id'    => Role::where('title', Role::OWNER)->
-    //                     where('scope', Role::COMPANY)
-    //                     ->value('id'),
-    //             ]);
-
-    //             if ($plan->name === 'Free') {
-
-    //                 $company->subscriptions()->create([
-    //                     'type'          => 'default',
-    //                     'stripe_status' => 'free',
-    //                     'plan_id'       => $plan->id,
-    //                 ]);
-    //             } else {
-
-    //                 $company->update([
-    //                     'subscription_status' => 'pending',
-    //                 ]);
-
-    //             }
-
-    //         }
-    //         $token = Auth::login($user);
-    //         return [
-    //             'user'             => $user,
-    //             'token'            => $token,
-    //             'requires_payment' => ! $plan->is_free,
-    //         ];
-    //     });
-    // }
     public function registration($data)
     {
         return DB::transaction(function () use ($data) {
@@ -185,7 +100,6 @@ class AuthService
                     $company->subscriptions()->create([
                         'type'          => 'default',
                         'stripe_status' => 'free',
-                        'plan_id'       => $plan->id,
                     ]);
 
                     $company->update([

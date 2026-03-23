@@ -13,6 +13,8 @@ class Company extends Model
     protected $fillable = [
         'name',
         'created_by',
+        'subscription_status',
+        'stripe_id',
     ];
 
     public function user()
