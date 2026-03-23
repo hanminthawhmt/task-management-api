@@ -6,7 +6,6 @@ use App\Models\CompanyInvitation;
 use App\Models\CompanyMember;
 use App\Models\Plan;
 use App\Models\Role;
-use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +39,7 @@ class AuthService
             $data['platform_role'] = 'user';
 
             $invitation = null;
+            $plan       = null;
 
             if (! empty($data['invitation_token'])) {
                 $invitation = CompanyInvitation::where('token', $data['invitation_token'])->firstOrFail();
@@ -60,9 +60,10 @@ class AuthService
             $user = User::create($data);
 
             if ($invitation) {
+
                 $company = Company::findOrFail($invitation->company_id);
 
-                $membership = CompanyMember::create([
+                CompanyMember::create([
                     'company_id' => $company->id,
                     'user_id'    => $user->id,
                     'role_id'    => Role::where('title', Role::MEMBER)
@@ -72,38 +73,58 @@ class AuthService
 
                 $invitation->update([
                     'status'      => 'accepted',
-                    'accepted_at' => NOW(),
-
+                    'accepted_at' => now(),
                 ]);
 
+                $requiresPayment = false;
+
             } else {
-                // normal company registration
+
+                $plan = Plan::findOrFail($data['plan_id']);
+
                 $company = Company::create([
                     'name'       => $data['company_name'],
                     'created_by' => $user->id,
                 ]);
 
-                $membership = CompanyMember::create([
+                CompanyMember::create([
                     'company_id' => $company->id,
                     'user_id'    => $user->id,
-                    'role_id'    => Role::where('title', Role::OWNER)->
-                        where('scope', Role::COMPANY)
+                    'role_id'    => Role::where('title', Role::OWNER)
+                        ->where('scope', Role::COMPANY)
                         ->value('id'),
                 ]);
 
-                $plan = Plan::findOrFail($data['plan_id']);
+                if ($plan->name === 'Free') {
 
-                Subscription::create([
-                    'company_id' => $company->id,
-                    'plan_id'    => $plan->id,
-                    'starts_at'  => NOW(),
-                ]);
+                    $company->subscriptions()->create([
+                        'type'          => 'default',
+                        'stripe_status' => 'free',
+                    ]);
 
+                    $company->update([
+                        'subscription_status' => 'active',
+                    ]);
+
+                    $requiresPayment = false;
+
+                } else {
+
+                    $company->update([
+                        'subscription_status' => 'pending',
+                    ]);
+
+                    $requiresPayment = true;
+                }
             }
+
+            // 🔹 Login
             $token = Auth::login($user);
+
             return [
-                'user'  => $user,
-                'token' => $token,
+                'user'             => $user,
+                'token'            => $token,
+                'requires_payment' => $requiresPayment,
             ];
         });
     }

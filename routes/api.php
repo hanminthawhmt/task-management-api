@@ -9,16 +9,16 @@ use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\BillingController;
-use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Laravel\Cashier\Http\Controllers\WebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:api', 'subscription.active' )->group(function () {
 
     // logout
     Route::post('logout', [AuthController::class, 'logout']);
@@ -58,7 +58,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::post('checkout', [BillingController::class, 'checkout']);
 
-    Route::post('webhooks/stripe', [StripeWebhookController::class, 'handle']);
+    // Route::post('webhooks/stripe', [StripeWebhookController::class, 'handle']);
+    Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook']);
 
 });
 
