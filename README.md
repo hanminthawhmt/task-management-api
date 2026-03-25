@@ -30,6 +30,12 @@ This project focuses entirely on backend engineering, system design, and real-wo
 
 ## Architecture Overview
 
+### System Context Diagram
+
+This diagram illustrates how the Task Management API sits at the center of the ecosystem, interacting with users and external services.
+
+![System Context Diagram](public/system-context.png)
+
 ### Layers
 
 - Controllers — Handle HTTP requests and responses  
