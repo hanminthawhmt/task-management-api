@@ -18,6 +18,7 @@ This project focuses entirely on backend engineering, system design, and real-wo
 - Multi-Tenant Architecture (Company-based system)
 - Role-Based Access Control (Owner, Member)
 - Invitation System for team onboarding
+- Email Service Integration (Mailtrap for testing emails)
 - Authentication with JWT
 - Stripe Subscription Integration (Laravel Cashier)
 - Webhook-Based Payment Processing
@@ -85,13 +86,26 @@ User → Register → Choose Plan
 
 - users  
 - companies  
-- company_members  
+- company_members
+- roles
+- projects
+- project_members
+- permissions
+- role_permissions
+- company_invitations
+- project_invitations
+- tasks
+- activity_logs
 - plans  
-- subscriptions  
+- subscriptions
+- subscription_items
 
 ---
 
-## 📡 API
+**Schema**
+![Database Schema](public/schema.png)
+
+## API
 
 - POST /register  
 - POST /login  
@@ -100,7 +114,7 @@ User → Register → Choose Plan
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 - Laravel 11  
 - MySQL  
@@ -118,4 +132,3 @@ User → Register → Choose Plan
 - Multi-tenant system design  
 
 ---
-![Database Schema](public/schema.png)
