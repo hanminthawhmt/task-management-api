@@ -5,7 +5,7 @@
     <strong>{{ $invitation->company->name }}</strong>
 </p>
 
-<p>Role: {{ $invitation->role->name }}</p>
+<p>Role: {{ $invitation->role->title }}</p>
 
 <a href="{{ $acceptUrl }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
     Accept Invitation
