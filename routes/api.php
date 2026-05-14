@@ -9,59 +9,67 @@ use App\Http\Controllers\Api\ProjectInvitationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
-use Laravel\Cashier\Http\Controllers\WebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::middleware('auth:api', 'subscription.active' )->group(function () {
+Route::get('success', function () {
+    return response()->json(['message' => 'Checkout completed successfully.']);
+});
 
-    // logout
-    Route::post('logout', [AuthController::class, 'logout']);
-    // token refresh
-    Route::post('refresh', [AuthController::class, 'refresh']);
+Route::get('cancel', function () {
+    return response()->json(['message' => 'Checkout was cancelled.']);
+});
 
-    // Company Workspace
-    Route::get('companies', [CompanyController::class, 'index']);
-
-    //Company Workspace Invitation
-    Route::post('companies/{company}/invite', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
-    Route::post('companies/{company}/invitations/{invitation}/reinvite', [CompanyInvitationController::class, 'reinvite'])->middleware('company.permission:invite_company_member');
-
-    // Projects Invitation
-    Route::post('projects/{project}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
-    Route::post('companies/{company}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
-    Route::post('projects/{project}/invitations/{invitation}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
-
-                                                                              // Tasks
-    Route::get('projects/{project}/tasks', [TaskController::class, 'index']); // middleware is check inside the service
-    Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete'])->middleware('project.permission:update_task');
-    Route::patch('tasks/{task}/update', [TaskController::class, 'updateStatus'])->middleware('project.permission:update_task');
-    Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
-    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->middleware('project.permission:delete_task');
-
-    Route::get(
-        'projects/{project}/activities',
-        [ActivityController::class, 'projectFeed']
-    );
-    // ->middleware('project.permission:view_project');
-
-    Route::get(
-        'companies/{company}/activities',
-        [ActivityController::class, 'companyFeed']
-    );
-    // ->middleware('company.permission:view_company');
-
+Route::middleware('auth:api')->group(function () {
     Route::post('checkout', [BillingController::class, 'checkout']);
 
-    // Route::post('webhooks/stripe', [StripeWebhookController::class, 'handle']);
-    Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook']);
+    Route::middleware('subscription.active')->group(function () {
 
+        // logout
+        Route::post('logout', [AuthController::class, 'logout']);
+        // token refresh
+        Route::post('refresh', [AuthController::class, 'refresh']);
+
+        // Company Workspace
+        Route::get('companies', [CompanyController::class, 'index']);
+
+        //Company Workspace Invitation
+        Route::post('companies/{company}/invite', [CompanyInvitationController::class, 'invite'])->middleware('company.permission:invite_company_member');
+        Route::post('companies/{company}/invitations/{invitation}/reinvite', [CompanyInvitationController::class, 'reinvite'])->middleware('company.permission:invite_company_member');
+
+        // Projects Invitation
+        Route::post('projects/{project}/member/invite', [ProjectInvitationController::class, 'invite'])->middleware('project.permission:invite_project_member');
+        Route::post('companies/{company}/projects', [ProjectController::class, 'store'])->middleware('company.permission:create_project');
+        Route::post('projects/{project}/invitations/{invitation}/reinvite', [ProjectInvitationController::class, 'reinvite'])->middleware('project.permission:invite_project_member');
+
+                                                                                  // Tasks
+        Route::get('projects/{project}/tasks', [TaskController::class, 'index']); // middleware is check inside the service
+        Route::patch('tasks/{task}/complete', [TaskController::class, 'markAsComplete'])->middleware('project.permission:update_task');
+        Route::patch('tasks/{task}/update', [TaskController::class, 'updateStatus'])->middleware('project.permission:update_task');
+        Route::post('tasks', [TaskController::class, 'store'])->middleware('project.permission:create_task');
+        Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->middleware('project.permission:delete_task');
+
+        Route::get(
+            'projects/{project}/activities',
+            [ActivityController::class, 'projectFeed']
+        );
+        // ->middleware('project.permission:view_project');
+
+        Route::get(
+            'companies/{company}/activities',
+            [ActivityController::class, 'companyFeed']
+        );
+        // ->middleware('company.permission:view_company');
+    });
 });
+
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 // can register as a company owner or can register as a company member using invitation token
 Route::post('register', [AuthController::class, 'register']);

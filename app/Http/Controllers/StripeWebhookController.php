@@ -27,11 +27,13 @@ class StripeWebhookController extends Controller
                 $this->handleCheckoutCompleted($event->data->object);
                 break;
 
-            case 'customer.subscription.created': // 👈 ADD THIS
+            case 'customer.subscription.created':
                 $this->handleSubscriptionCreated($event->data->object);
                 break;
 
             case 'invoice.paid':
+            case 'invoice.payment_succeeded':
+            case 'invoice_payment.paid':
                 $this->handleInvoicePaid($event->data->object);
                 break;
 
@@ -61,11 +63,11 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        // Optional: mark as processing (NOT active yet)
         $company->update([
-            'subscription_status' => 'processing',
+            'subscription_status' => 'active',
         ]);
     }
+
     protected function handleInvoicePaid($invoice)
     {
         $subscription = Subscription::where('stripe_id', $invoice->subscription)->first();
@@ -74,6 +76,13 @@ class StripeWebhookController extends Controller
             $subscription->update([
                 'stripe_status' => 'active',
             ]);
+
+            $billable = $subscription->billable;
+            if ($billable) {
+                $billable->update([
+                    'subscription_status' => 'active',
+                ]);
+            }
         }
     }
 
@@ -86,7 +95,6 @@ class StripeWebhookController extends Controller
 
             if (! $plan) {
                 \Log::error('Plan not found for price: ' . $stripePrice);
-                return;
             }
 
             $companyId = $stripeSub->metadata->company_id ?? null;
@@ -106,17 +114,25 @@ class StripeWebhookController extends Controller
             // Prevent duplicate
             $exists = Subscription::where('stripe_id', $stripeSub->id)->exists();
             if ($exists) {
+                $company->update([
+                    'subscription_status' => 'active',
+                ]);
                 return;
             }
 
-            // ✅ CREATE subscription (ONLY HERE)
-            $company->subscriptions()->create([
+            $subscriptionData = [
                 'type'          => 'default',
                 'stripe_id'     => $stripeSub->id,
                 'stripe_status' => $stripeSub->status,
                 'stripe_price'  => $stripePrice,
-                'plan_id'       => $plan->id,
-            ]);
+            ];
+
+            if ($plan) {
+                $subscriptionData['plan_id'] = $plan->id;
+            }
+
+            // ✅ CREATE subscription (ONLY HERE)
+            $company->subscriptions()->create($subscriptionData);
 
             // ✅ NOW mark company active
             $company->update([
